@@ -17,6 +17,8 @@ Attribute VB_Exposed = False
 
 
 
+
+
 ' FROM COPYPASTE MODULE
 Option Explicit
 Public PreviousCell As Range
@@ -353,8 +355,8 @@ End Function
 Function autoMerge(z As Double, g As Double)
 'z to accomodate kN/m*m/m etc format length
 'g to round the value to get correct length instead of 0.333333 for example
-On Error GoTo eh
 
+On Error Resume Next
 
 Dim counter_a, counter_b, t, u, j, i, cells As Double
 Dim total As Double
@@ -475,13 +477,12 @@ End If
 
 Done:
     Exit Function
-eh:
-    MsgBox ("Can't automerge")
-    End
+    
 End Function
 
 Function GetUnitsFromString(unitz As String)
 'MsgBox ("start GetUnitsFromString")
+On Error Resume Next
 unitz = UCase(unitz) 'to avoid caps issue
 If InStr(unitz, "KN/M") > 0 Then
     CommandButton_kNperm_Click
@@ -507,18 +508,15 @@ End If
 
 End Function
 
-
-
-
 Private Sub ComplexCalculation_Click()
-On Error GoTo eh
+On Error Resume Next
 
 Dim m As Double
 Dim x, donothing, unitz, vv As String
 Dim acell, cell, cellx, startcell As Range
 Dim Counter, ctr, DollarCount_kN, DollarCount_kNm, DollarCount_m, DollarCount_kPa, DollarCount_kNperm, DollarCount_m2 As Integer
 Dim ccheck, double_element_equation  As Boolean
-
+Dim loop_counter As Integer
 
 'start building equiation
 x = "="
@@ -540,9 +538,10 @@ emptycellfound: 'need after empty cell check down below
 If acell.Column = 1 Then GoTo edasi
 
 If acell.MergeCells = True Then
-
-    Do Until acell.MergeCells = False
+    loop_counter = 1
+    Do Until acell.MergeCells = False And loop_counter < 100
         Set acell = acell.Offset(0, -1)
+        loop_counter = loop_counter + 1
     Loop
     Set acell = acell.Offset(0, 1)
 Else
@@ -573,7 +572,7 @@ Range(ActiveCell, ActiveCell.Offset(0, -m)).Select
 
 For Each cell In Selection
     
-    If cell.Value = "/" Then
+    If InStr(cell.Value, "/") > 0 Then
         Set cellx = cell.Offset(0, -1)
         If cellx.MergeCells = True Then
             Do Until cellx.MergeCells = False
@@ -588,11 +587,13 @@ For Each cell In Selection
         End If
 
     
-     ElseIf cell.Value = "-" Then
+     ElseIf InStr(cell.Value, "-") > 0 Then
         Set cellx = cell.Offset(0, -1)
         If cellx.MergeCells = True Then
-            Do Until cellx.MergeCells = False
+            loop_counter = 1
+            Do Until cellx.MergeCells = False And loop_counter < 100
                 Set cellx = cellx.Offset(0, -1)
+                loop_counter = loop_counter + 1
             Loop
             x = x & "R[0]C[" & -startcell.Column + cellx.Column + 1 & "]" & "-"
             unitz = unitz + cellx.Offset(0, 1).NumberFormat 'guess units for simple situations like 1kN+1kN+1kN
@@ -604,11 +605,13 @@ For Each cell In Selection
         End If
         
     
-    ElseIf cell.Value = "+" Then
+    ElseIf InStr(cell.Value, "+") > 0 Then
         Set cellx = cell.Offset(0, -1)
         If cellx.MergeCells = True Then
-            Do Until cellx.MergeCells = False
+            loop_counter = 1
+            Do Until cellx.MergeCells = False And loop_counter < 100
                 Set cellx = cellx.Offset(0, -1)
+                loop_counter = loop_counter + 1
             Loop
             x = x & "R[0]C[" & -startcell.Column + cellx.Column + 1 & "]" & "+"
             unitz = unitz + cellx.Offset(0, 1).NumberFormat 'guess units for simple situations like 1kN-1kN-1kN
@@ -620,11 +623,13 @@ For Each cell In Selection
             
         End If
         
-    ElseIf cell.Value = "×" Then
+    ElseIf InStr(cell.Value, "×") > 0 Then
         Set cellx = cell.Offset(0, -1)
         If cellx.MergeCells = True Then
-            Do Until cellx.MergeCells = False
+            loop_counter = 1
+            Do Until cellx.MergeCells = False And loop_counter < 100
                 Set cellx = cellx.Offset(0, -1)
+                loop_counter = loop_counter + 1
             Loop
             x = x & "R[0]C[" & -startcell.Column + cellx.Column + 1 & "]" & "×"
         Else
@@ -720,8 +725,6 @@ AppActivate Application.Caption
 Done:
     Exit Sub
 
-eh: MsgBox ("ComplexCalculation sub failed")
-End
 
 End Sub
 
@@ -748,7 +751,7 @@ AppActivate Application.Caption
 End Sub
 
 Private Sub CommandButton_0_Click()
-On Error GoTo eh
+On Error Resume Next
 Dim x, y As String
 
 'makeNice not working
@@ -779,16 +782,11 @@ If Len(ActiveCell.Formula) > 0 Then
     End If
 End If
 
-Done:
-    Exit Sub
-eh:
-    MsgBox ("check code")
-    End
 
 End Sub
 
 Private Sub CommandButton_00_Click()
-On Error GoTo eh
+On Error Resume Next
 Dim x, y, z As String
 'makeNice not working
 
@@ -823,15 +821,11 @@ If Len(ActiveCell.Formula) > 0 Then
     End If
 End If
 
-Done:
-    Exit Sub
-eh:
-    MsgBox ("check code")
-    End
+
 End Sub
 
 Private Sub CommandButton_000_Click()
-On Error GoTo eh
+On Error Resume Next
 Dim x, y, z As String
 'makeNice not working
 
@@ -865,14 +859,11 @@ If Len(ActiveCell.Formula) > 0 Then
     End If
 End If
 
-Done:
-    Exit Sub
-eh:
-    MsgBox ("check code")
-    End
+
 End Sub
 
 Private Sub CommandButton_000GPa_Click()
+On Error Resume Next
 makeNice
 Selection.NumberFormat = "0.00"" GPa"""
 autoMerge 30, 0
@@ -882,6 +873,7 @@ AppActivate Application.Caption
 End Sub
 
 Private Sub CommandButton_000kN_Click()
+On Error Resume Next
 makeNice
 Selection.NumberFormat = "0.00"" kN"""
 autoMerge 40, 2
@@ -891,6 +883,7 @@ AppActivate Application.Caption
 End Sub
 
 Private Sub CommandButton_000kNm_Click()
+On Error Resume Next
 makeNice
 Selection.NumberFormat = "0.00"" kNm"""
 autoMerge 38, 2
@@ -900,6 +893,7 @@ AppActivate Application.Caption
 End Sub
 
 Private Sub CommandButton_000knperm_Click()
+On Error Resume Next
 makeNice
 Selection.NumberFormat = "0.00"" kN/m"""
 autoMerge 42, 2 'tested with 9.13
@@ -909,6 +903,7 @@ AppActivate Application.Caption
 End Sub
 
 Private Sub CommandButton_000kPa_Click()
+On Error Resume Next
 makeNice
 Selection.NumberFormat = "0.00"" kPa"""
 autoMerge 38, 2
@@ -918,6 +913,7 @@ AppActivate Application.Caption
 End Sub
 
 Private Sub CommandButton_000m_Click()
+On Error Resume Next
 makeNice
 Selection.NumberFormat = "0.00"" m"""
 autoMerge 10, 2 'checked on 0.15
@@ -927,6 +923,7 @@ AppActivate Application.Caption
 End Sub
 
 Private Sub CommandButton_000m2()
+On Error Resume Next
 makeNice
 Selection.NumberFormat = "0.00"" m²"""
 autoMerge 30, 2
@@ -936,6 +933,7 @@ AppActivate Application.Caption
 End Sub
 
 Private Sub CommandButton_000MPa_Click()
+On Error Resume Next
 makeNice
 Selection.NumberFormat = "0.00"" MPa"""
 autoMerge 38, 2
@@ -945,6 +943,7 @@ AppActivate Application.Caption
 End Sub
 
 Private Sub CommandButton_00GPa_Click()
+On Error Resume Next
 makeNice
 Selection.NumberFormat = "0.0"" GPa"""
 autoMerge 40, 0 'checked on 1.0 10.0
@@ -954,6 +953,7 @@ AppActivate Application.Caption
 End Sub
 
 Private Sub CommandButton_00kNm_Click()
+On Error Resume Next
 makeNice
 Selection.NumberFormat = "0.0"" kNm"""
 autoMerge 40, 1
@@ -963,6 +963,7 @@ AppActivate Application.Caption
 End Sub
 
 Private Sub CommandButton_00knperm_Click()
+On Error Resume Next
 makeNice
 Selection.NumberFormat = "0.0"" kN/m"""
 autoMerge 40, 1
@@ -972,6 +973,7 @@ AppActivate Application.Caption
 End Sub
 
 Private Sub CommandButton_00kPa_Click()
+On Error Resume Next
 makeNice
 Selection.NumberFormat = "0.0"" kPa"""
 autoMerge 38, 1
@@ -981,6 +983,7 @@ AppActivate Application.Caption
 End Sub
 
 Private Sub CommandButton_00MPa_Click()
+On Error Resume Next
 makeNice
 Selection.NumberFormat = "0.0"" MPa"""
 autoMerge 38, 1
@@ -989,6 +992,7 @@ AppActivate Application.Caption
 End Sub
 
 Private Sub CommandButton_00s_Click()
+On Error Resume Next
 makeNice
 Selection.NumberFormat = "0.0"" s"""
 autoMerge 16, 1
@@ -998,6 +1002,7 @@ AppActivate Application.Caption
 End Sub
 
 Private Sub CommandButton_0deg_Click()
+On Error Resume Next
 makeNice
 Selection.NumberFormat = "0""°"""
 autoMerge 14, 0
@@ -1007,6 +1012,7 @@ AppActivate Application.Caption
 End Sub
 
 Private Sub CommandButton_0GPa_Click()
+On Error Resume Next
 makeNice
 Selection.NumberFormat = "0"" GPa"""
 autoMerge 31, 0
@@ -1016,6 +1022,7 @@ AppActivate Application.Caption
 End Sub
 
 Private Sub CommandButton_0knperm_Click()
+On Error Resume Next
 makeNice
 Selection.NumberFormat = "0"" kN/m"""
 autoMerge 30, 0
@@ -1025,6 +1032,7 @@ AppActivate Application.Caption
 End Sub
 
 Private Sub CommandButton_0m2_Click()
+On Error Resume Next
 makeNice
 Selection.NumberFormat = "0"" m²"""
 autoMerge 17, 0 'checked on 1150
@@ -1034,6 +1042,7 @@ AppActivate Application.Caption
 End Sub
 
 Private Sub CommandButton_0mm_Click()
+On Error Resume Next
 makeNice
 Selection.NumberFormat = "0"" mm"""
 autoMerge 25, 0
@@ -1043,6 +1052,7 @@ AppActivate Application.Caption
 End Sub
 
 Private Sub CommandButton_0mmcrs_Click()
+On Error Resume Next
 makeNice
 Selection.NumberFormat = "0"" mm crs"""
 autoMerge 40, 0
@@ -1055,6 +1065,7 @@ End Sub
 
 Private Sub CommandButton_0super_Click()
 
+On Error Resume Next
 Dim x, y As String
 
 x = ActiveCell.Value
@@ -1092,6 +1103,7 @@ SetClipboard (txt)
 End Sub
 
 Private Sub CommandButton_boltV_Click()
+On Error Resume Next
 'make all nice
 makeNice
 ActiveCell.Resize(7, 9).Merge
@@ -1175,6 +1187,7 @@ AppActivate Application.Caption
 End Sub
 
 Private Sub CommandButton_cantilever_defl_Click()
+On Error Resume Next
 makeNice
 ActiveCell.Resize(3, 21).Merge
 ActiveCell.UnMerge
@@ -1234,6 +1247,7 @@ SendKeys "{F2}"
 End Sub
 
 Private Sub CommandButton_cantilever_deflF_Click()
+On Error Resume Next
 makeNice
 ActiveCell.Resize(3, 21).Merge
 ActiveCell.UnMerge
@@ -1293,6 +1307,7 @@ SendKeys "{F2}"
 End Sub
 
 Private Sub CommandButton_cantilever_M_Click()
+On Error Resume Next
 makeNice
 ActiveCell.Resize(1, 21).Merge
 ActiveCell.UnMerge
@@ -1343,9 +1358,8 @@ Private Sub CommandButton_check_kN_Click()
 '1. guess the units of the formula in the cell (works only for A+B scenario)
 '2. if cell is empty - calculates equiation (the code in other sub!)
 '3. if cell contains a link to other cell - gets its units
-ActiveCell.NumberFormat = "General"
 
-On Error GoTo eh
+On Error Resume Next
 start_check_kN:
 
 Dim y, z, tt, zz, xx, vv, ttx As String
@@ -1356,19 +1370,13 @@ Dim double_element_equation, link_equation As Boolean
 xx = ActiveCell.Formula 'not Text(because it shows ###), not Value(because it shows result)
 tt = Replace(xx, "=", "")
 
-If InStr(tt, "cos") Then GoTo Done
-If InStr(tt, "sin") Then GoTo Done
-If InStr(tt, "tan") Then GoTo Done
-If InStr(tt, "NAME?") Then GoTo Done
-
-
 'check for range input
 If InStr(tt, ":") Then
     MsgBox ("it cannot be range")
     GoTo Done
 End If
-
 'check what inside of cell to call proper part of the script
+
 vv = ActiveCell.Formula
 
 check_restart:
@@ -1399,28 +1407,9 @@ If ctr = 0 And vv <> "" Then
 End If
     
 
-'>>>>1.START guess units for equiations with two objects only like A+B
-
-
+'>>>>START guess units for equiations with two objects only like A+B
 If InStr(xx, "*") > 1 And double_element_equation = True Then
     zz = Split(tt, "*")
-
-    '>>NB check if it's not two units but A1/2 for example
-    If IfThereIsLetterInStr(CStr(zz(0))) = False And IfThereIsLetterInStr(CStr(zz(1))) = True Then
-        link_equation = True
-        ttx = zz(1)
-        tt = zz(1)
-        GoTo link_check
-    End If
-    
-    If IfThereIsLetterInStr(CStr(zz(0))) = True And IfThereIsLetterInStr(CStr(zz(1))) = False Then
-        link_equation = True
-        ttx = zz(0)
-        tt = zz(0)
-        GoTo link_check
-    End If
-    '<<end NB check
-        
     y = Range(zz(0)).NumberFormat
     z = Range(zz(1)).NumberFormat
     'order is important!
@@ -1451,23 +1440,6 @@ If InStr(xx, "*") > 1 And double_element_equation = True Then
  
 ElseIf InStr(xx, "+") > 1 And double_element_equation = True Then
     zz = Split(tt, "+")
-    
-    '>>NB check if it's not two units but A1/2 for example
-    If IfThereIsLetterInStr(CStr(zz(0))) = False And IfThereIsLetterInStr(CStr(zz(1))) = True Then
-        link_equation = True
-        ttx = zz(1)
-        tt = zz(1)
-        GoTo link_check
-    End If
-    
-    If IfThereIsLetterInStr(CStr(zz(0))) = True And IfThereIsLetterInStr(CStr(zz(1))) = False Then
-        link_equation = True
-        ttx = zz(0)
-        tt = zz(0)
-        GoTo link_check
-    End If
-    '<<end NB check
-    
     y = Range(zz(0)).NumberFormat
     z = Range(zz(1)).NumberFormat
     'order is important!
@@ -1486,23 +1458,6 @@ ElseIf InStr(xx, "+") > 1 And double_element_equation = True Then
 ElseIf InStr(xx, "/") > 1 And double_element_equation = True Then
 
     zz = Split(tt, "/")
-    
-    '>>NB check if it's not two units but A1/2 for example
-    If IfThereIsLetterInStr(CStr(zz(0))) = False And IfThereIsLetterInStr(CStr(zz(1))) = True Then
-        link_equation = True
-        ttx = zz(1)
-        tt = zz(1)
-        GoTo link_check
-    End If
-    
-    If IfThereIsLetterInStr(CStr(zz(0))) = True And IfThereIsLetterInStr(CStr(zz(1))) = False Then
-        link_equation = True
-        ttx = zz(0)
-        tt = zz(0)
-        GoTo link_check
-    End If
-    '<<end NB check
-    
     y = Range(zz(0)).NumberFormat
     z = Range(zz(1)).NumberFormat
 
@@ -1515,7 +1470,6 @@ ElseIf InStr(xx, "/") > 1 And double_element_equation = True Then
         CommandButton_kPa_Click
     ElseIf InStr(y + z, "kN") > 1 And InStr(Replace(y + z, "kN", "", , 1), "m²") > 1 Then
         CommandButton_kPa_Click
-
     ElseIf InStr(y + z, "kNm") > 1 And InStr(y + z, "m") > 1 Then
         CommandButton_kN_Click
     ElseIf InStr(y + z, "kPa") > 1 And InStr(y + z, "kN") > 1 Then
@@ -1530,36 +1484,12 @@ ElseIf InStr(xx, "/") > 1 And double_element_equation = True Then
         CommandButton_kN_Click
     ElseIf InStr(y + z, "m") > 1 Then
         CommandButton_m_Click
-    ElseIf InStr(y + z, "MPa") > 1 Then
-        CommandButton_MPa_Click
-    ElseIf InStr(y + z, "kPa") > 1 Then
-        CommandButton_kPa_Click
-    ElseIf InStr(y + z, "GPa") > 1 Then
-        CommandButton_GPa_Click
     Else
-
         CommandButton_0super_Click
     End If
 
 ElseIf InStr(xx, "-") > 1 And double_element_equation = True Then
     zz = Split(tt, "-")
-    
-    '>>NB check if it's not two units but A1/2 for example
-    If IfThereIsLetterInStr(CStr(zz(0))) = False And IfThereIsLetterInStr(CStr(zz(1))) = True Then
-        link_equation = True
-        ttx = zz(1)
-        tt = zz(1)
-        GoTo link_check
-    End If
-    
-    If IfThereIsLetterInStr(CStr(zz(0))) = True And IfThereIsLetterInStr(CStr(zz(1))) = False Then
-        link_equation = True
-        ttx = zz(0)
-        tt = zz(0)
-        GoTo link_check
-    End If
-    '<<end NB check
-    
     y = Range(zz(0)).NumberFormat
     z = Range(zz(1)).NumberFormat
     'order is important!
@@ -1577,14 +1507,9 @@ ElseIf InStr(xx, "-") > 1 And double_element_equation = True Then
     
 '>>END guessing the units
 
-
-
-
-
-'2.now if the cell is empty we're looking for equation
+'now if the cell is empty we're looking for equation
 '>>>>>START
 ElseIf xx = "" Then
-    If ActiveCell.Column < 4 Then GoTo Done 'lazy check it can't be an equiation such small, this check also in the ComplexCalculation_Click module
     ComplexCalculation_Click
     GoTo start_check_kN
 ElseIf xx = "=" Then
@@ -1595,20 +1520,18 @@ ElseIf xx = "=" Then
 
 
 Else
-'>>>>>3.START link check
+'>>>>>START link check
 ''MsgBox ("check for letters to see if that's a link")
 ''MsgBox (tt)
 'check for external link
-
     If InStr(tt, "!") > 0 Then
         ttx = Split(tt, "!")(1)
     Else
         ttx = tt
     End If
 '' (ttx)
-link_check:
     If Asc(Left(ttx, 1)) > 64 And Asc(Left(ttx, 1)) < 91 And link_equation = True Then
-        'MsgBox ("start 3. link check module")
+        ''MsgBox ("start")
         If Range(tt).NumberFormat = "0"" kN""" Then
             Selection.UnMerge
             Call CommandButton_0kN_Click
@@ -1723,12 +1646,10 @@ link_check:
 End If
 
 Done:
-    Exit Sub
-eh:
-    MsgBox ("Can't finish CommandButton_check_kN sub")
-End
 
 End Sub
+
+
 
 Private Sub CommandButton_delete_row_Click()
 If ActiveCell.Formula = "" Then
@@ -1754,7 +1675,7 @@ End Sub
 
 Private Sub CommandButton_00kgm2_Click()
 makeNice
-Selection.NumberFormat = "0.0"" kg/m²"""
+Selection.NumberFormat = "0"" kg/m²"""
 autoMerge 40, 1
 
 AppActivate Application.Caption
@@ -1809,7 +1730,7 @@ End Sub
 Private Sub CommandButton_0mm3_Click()
 makeNice
 Selection.NumberFormat = "0"" mm³"""
-autoMerge 20, 0
+autoMerge 26, 0
 
 AppActivate Application.Caption
 
@@ -1843,7 +1764,7 @@ AppActivate Application.Caption
 End Sub
 
 Private Sub CommandButton_divided_Click()
-On Error GoTo eh
+On Error Resume Next
 Dim Counter As Integer
 
 
@@ -1892,15 +1813,13 @@ End If
 
 Done:
     Exit Sub
-eh:
-    MsgBox ("err")
-End
+
 
 End Sub
 
 
 Private Sub CommandButton_equal_Click()
-On Error GoTo eh
+On Error Resume Next
 Dim Counter As Integer
 
 
@@ -1949,9 +1868,7 @@ End If
 
 Done:
     Exit Sub
-eh:
-    MsgBox ("err")
-End
+
 
 End Sub
 Private Sub CommandButton_fi_Click()
@@ -1988,7 +1905,7 @@ Range(TextBox1).GoalSeek Goal:=0, ChangingCell:=Range(TextBox2)
 End Sub
 
 Private Sub CommandButton_fintf_Click()
-
+On Error Resume Next
 'make all nice
 makeNice
 ActiveCell.Resize(7, 9).Merge
@@ -2063,7 +1980,7 @@ SendKeys "{F2}"
 End Sub
 
 Private Sub CommandButton_goto_Click()
-On Error GoTo eh
+On Error Resume Next
 Dim x, y, z, j, second, Result, yx  As String
 Dim suspcount As Integer
 'Dim PreviousCell As Range ---> see public var in the beginning
@@ -2119,9 +2036,9 @@ If x <> "" Then
     
     If InStr(y, "!") > 0 Then
         '''MsgBox (Split(y, "!")(0) & "!a" & second)
-        Application.Goto Range(Split(y, "!")(0) + "!a" + second), True
+        Application.GoTo Range(Split(y, "!")(0) + "!a" + second), True
     Else
-        Application.Goto Range("a" + second), True
+        Application.GoTo Range("a" + second), True
     End If
 
     
@@ -2133,22 +2050,18 @@ End If
 
 Done:
     Exit Sub
-eh:
-    MsgBox ("error")
-End
+
 End Sub
 
 Private Sub CommandButton_gofrom_Click()
-On Error GoTo eh
+On Error Resume Next
 Dim x, y, z, j, second, Result, yx As String
 
 If PreviousCell.Address <> "" Then
 
     y = "'" + PreviouseCellSheet + "'!" + Replace(PreviousCell.Address, "$", "")
     z = PreviousCell.Column
-    
-    
-    
+        
     If InStr(y, "!") > 0 Then
         yx = Split(y, "!")(1)
     Else
@@ -2176,9 +2089,9 @@ If PreviousCell.Address <> "" Then
     If InStr(y, "!") > 0 Then
         ''MsgBox (yx)
         ''MsgBox (Split(y, "!")(0) & "!a" & second)
-        Application.Goto Range(Split(y, "!")(0) + "!a" + second), True
+        Application.GoTo Range(Split(y, "!")(0) + "!a" + second), True
     Else
-        Application.Goto Range("a" + second), True
+        Application.GoTo Range("a" + second), True
     End If
     
     PreviousCell.Select
@@ -2188,10 +2101,21 @@ End If
 
 Done:
     Exit Sub
-eh:
-    MsgBox ("error")
-End
+
 End Sub
+
+Private Sub CommandButton_insert4_row_Click()
+Application.CutCopyMode = False ' clear clipboard
+Dim x As Long
+  For x = 1 To 4
+    ActiveCell.Offset(1).EntireRow.Insert Shift:=xlDown, CopyOrigin:=xlFormatFromRightOrBelow
+    ActiveCell.EntireRow.Copy
+    ActiveCell.Offset(1).EntireRow.PasteSpecial xlPasteFormats
+    Application.CutCopyMode = False
+  Next x
+
+End Sub
+
 
 Private Sub CommandButton_kg_Click()
 makeNice
@@ -2240,6 +2164,7 @@ End Sub
 
 Private Sub CommandButton_kNperm_Click()
 Dim x, y As String
+On Error Resume Next
 
 x = ActiveCell.Value
 
@@ -2297,11 +2222,9 @@ txt = ChrW(&H3BB)
 SetClipboard (txt)
 End Sub
 
-
-
 Private Sub CommandButton_merge_Click()
 Application.DisplayAlerts = False
-On Error GoTo eh
+On Error Resume Next
 
 Dim Counter, mcells, fcells As Integer
 Dim cell As Range
@@ -2347,6 +2270,10 @@ Else
     Selection.VerticalAlignment = xlVAlignCenter
     Selection.Font.Name = "Arial"
     Selection.Font.Size = 12
+    If Counter > 1 Then
+        Selection.WrapText = True
+    Else: Selection.WrapText = False
+    End If
     'Selection.Font.Color = _
     'RGB(0, 0, 0)
     AppActivate Application.Caption
@@ -2356,14 +2283,11 @@ End If
 
 Done:
     Exit Sub
-eh:
-    MsgBox ("Can't merge")
-    End
     
 End Sub
 
 Private Sub CommandButton_minus_Click()
-On Error GoTo eh
+On Error Resume Next
 Dim Counter As Integer
 
 
@@ -2412,29 +2336,22 @@ End If
 
 Done:
     Exit Sub
-eh:
-    MsgBox ("err")
-End
 
 End Sub
 
 
 Private Sub CommandButton_Moments_Click()
 Dim chromePath As String
-On Error GoTo eh
+On Error Resume Next
 chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
 
 Shell (chromePath & " -url http://doctorlom.com/item173.html#sharnir")
-Done:
-    Exit Sub
-eh:
-    MsgBox ("check Chrome address C:\Program Files (x86)\Google\Chrome\Application\chrome.exe")
-    End
+
 End Sub
 
 Private Sub CommandButton_moreequal_Click()
 
-On Error GoTo eh
+On Error Resume Next
 Dim Counter As Integer
 
 zzzd:
@@ -2474,16 +2391,8 @@ End If
 
 Done:
     Exit Sub
-eh:
-    MsgBox ("err")
-End
 
 End Sub
-
-
-End Sub
-
-
 
 Private Sub CommandButton_mu_Click()
 Dim txt As String
@@ -2530,15 +2439,11 @@ SendKeys "^a"
 End Sub
 
 Private Sub CommandButton_nzs3404_Click()
-On Error GoTo eh
+On Error Resume Next
 Dim chromePath As String
 chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
 Shell (chromePath & " -url https://www.dropbox.com/s/7ng0kvd96wdup47/NZS%203404.1%262-1997%20%28Steel%20structures%29.pdf?dl=0")
-Done:
-    Exit Sub
-eh:
-    MsgBox ("check file address or Chrome address C:\Program Files (x86)\Google\Chrome\Application\chrome.exe")
-    End
+
 End Sub
 
 Private Sub CommandButton_OK_Click()
@@ -2554,15 +2459,11 @@ SetClipboard (txt)
 End Sub
 
 Private Sub CommandButton_PFC_Click()
-On Error GoTo eh
+On Error Resume Next
 Dim chromePath As String
 chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
 Shell (chromePath & " -url https://www.dropbox.com/s/znrjv9lkppc3zah/S%26T_Design_With_Steel_2013_2_Part6.pdf?dl=0")
-Done:
-    Exit Sub
-eh:
-    MsgBox ("check file address or Chrome address C:\Program Files (x86)\Google\Chrome\Application\chrome.exe")
-    End
+
 End Sub
 
 Private Sub CommandButton_pi_Click()
@@ -2574,7 +2475,7 @@ SetClipboard (txt)
 End Sub
 
 Private Sub CommandButton_plus_Click()
-On Error GoTo eh
+On Error Resume Next
 Dim Counter As Integer
 
 
@@ -2623,15 +2524,13 @@ End If
 
 Done:
     Exit Sub
-eh:
-    MsgBox ("err")
-End
+
 
 End Sub
 
 
 Private Sub CommandButton_plus_sheet_Click()
-
+Application.CutCopyMode = False ' clear clipboard
 Dim x As Long
   For x = 1 To 39 '39 rows in a sheet
     ActiveCell.Offset(1).EntireRow.Insert Shift:=xlDown, CopyOrigin:=xlFormatFromRightOrBelow
@@ -2643,15 +2542,11 @@ Dim x As Long
 End Sub
 
 Private Sub CommandButton_RHS_Click()
-On Error GoTo eh
+On Error Resume Next
 Dim chromePath As String
 chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
 Shell (chromePath & " -url https://www.dropbox.com/s/2xcve7wqo7gewtn/S%26T_Design_With_Steel_2013_2_Part15.pdf?dl=0")
-Done:
-    Exit Sub
-eh:
-    MsgBox ("check file address or Chrome address C:\Program Files (x86)\Google\Chrome\Application\chrome.exe")
-    End
+
 End Sub
 
 Private Sub CommandButton_ro_Click()
@@ -2661,7 +2556,7 @@ SetClipboard (txt)
 End Sub
 
 Private Sub CommandButton_RunConcat_Click()
-On Error GoTo eh
+On Error Resume Next
 makeNice
 
 Dim x
@@ -2682,8 +2577,7 @@ ActiveCell.FormulaR1C1 = "=CONCATENATE(" & Join(arr) & ")"
 
 Done:
     Exit Sub
-eh:
-    End
+
 
 End Sub
 
@@ -2721,41 +2615,29 @@ SetClipboard (txt)
 End Sub
 
 Private Sub CommandButton_sesoc_Click()
-On Error GoTo eh
+On Error Resume Next
 Dim chromePath As String
 chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
 Shell (chromePath & " -url https://www.dropbox.com/s/znr7hcsijzvithb/SESOC%20-%20Simplified_Design_of_Steel_Members.pdf?dl=0")
-Done:
-    Exit Sub
-eh:
-    MsgBox ("check file address or Chrome address C:\Program Files (x86)\Google\Chrome\Application\chrome.exe")
-    End
+
 End Sub
 
 Private Sub CommandButton_SHS_Click()
-On Error GoTo eh
+On Error Resume Next
 Dim chromePath As String
 
 chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
 
 Shell (chromePath & " -url http://sunsetpatios.com.au/beam-deflection-calculator.php")
-Done:
-    Exit Sub
-eh:
-    MsgBox ("check Chrome address C:\Program Files (x86)\Google\Chrome\Application\chrome.exe")
-    End
+
 End Sub
 
 Private Sub CommandButton_SHS222_Click()
-On Error GoTo eh
+On Error Resume Next
 Dim chromePath As String
 chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
 Shell (chromePath & " -url https://www.dropbox.com/s/48txhovc3ek22el/S%26T_Design_With_Steel_2013_2_Part20.pdf?dl=0")
-Done:
-    Exit Sub
-eh:
-    MsgBox ("check file address or Chrome address C:\Program Files (x86)\Google\Chrome\Application\chrome.exe")
-    End
+
 End Sub
 
 Private Sub CommandButton_sigma_Click()
@@ -2765,6 +2647,7 @@ SetClipboard (txt)
 End Sub
 
 Private Sub CommandButton_simplebeam_defl_Click()
+On Error Resume Next
 makeNice
 ActiveCell.Resize(3, 21).Merge
 ActiveCell.UnMerge
@@ -2828,6 +2711,7 @@ SendKeys "{F2}"
 End Sub
 
 Private Sub CommandButton_simplebeam_defl_timber_Click()
+On Error Resume Next
 makeNice
 ActiveCell.Resize(7, 21).Merge
 ActiveCell.UnMerge
@@ -2933,6 +2817,7 @@ SendKeys "{F2}"
 End Sub
 
 Private Sub CommandButton_simplebeam_M_Click()
+On Error Resume Next
 makeNice
 ActiveCell.Resize(1, 21).Merge
 ActiveCell.UnMerge
@@ -2978,7 +2863,7 @@ SendKeys "{F2}"
 End Sub
 
 Private Sub CommandButton_UB_Click()
-On Error GoTo eh
+On Error Resume Next
 'Dim pat1, pat2, pat3 As String
 'pat1 = """C:\Program Files (x86)\Adobe\Acrobat DC\Acrobat\Acrobat.exe"""
 'pat2 = "/A ""page=3"""
@@ -2988,11 +2873,7 @@ On Error GoTo eh
 Dim chromePath As String
 chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
 Shell (chromePath & " -url https://www.dropbox.com/s/790dxmxyp4d565d/S%26T_Design_With_Steel_2013_2_Part3.pdf?dl=0")
-Done:
-    Exit Sub
-eh:
-    MsgBox ("check file address or Chrome address C:\Program Files (x86)\Google\Chrome\Application\chrome.exe")
-    End
+
 End Sub
 
 Private Sub CommandButton_tau_Click()
@@ -3008,19 +2889,15 @@ SetClipboard (txt)
 End Sub
 
 Private Sub CommandButton_L_Click()
-On Error GoTo eh
+On Error Resume Next
 Dim chromePath As String
 chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
 Shell (chromePath & " -url https://www.dropbox.com/s/zimhh8s9o2hnts3/S%26T_Design_With_Steel_2013_2_Part10.pdf?dl=0")
-Done:
-    Exit Sub
-eh:
-    MsgBox ("check file address or Chrome address C:\Program Files (x86)\Google\Chrome\Application\chrome.exe")
-    End
+
 End Sub
 
 Private Sub CommandButton_update_Click()
-On Error GoTo eh
+On Error Resume Next
 Dim wks As Object
 For Each wks In Worksheets
 
@@ -3032,12 +2909,6 @@ Next wks
 
 Sheet00.PageSetup.RightFooter = "Print Date: &D" 'remove frome the title
 
-
-Done:
-    Exit Sub
-eh:
-    MsgBox ("something went wrong")
-    End
 
 End Sub
 
@@ -3061,6 +2932,7 @@ SendKeys "{F2}"
 End Sub
 
 Private Sub CommandButton_weld_Click()
+On Error Resume Next
 'make all nice
 makeNice
 ActiveCell.Resize(5, 12).Merge
@@ -3124,6 +2996,7 @@ End Sub
 
 Private Sub CommandButton_comp_Click()
 
+On Error Resume Next
 ActiveCell.Resize(1, 3).Merge
 makeNice
 ActiveCell.FormulaR1C1 = "=1"
@@ -3170,7 +3043,7 @@ End Sub
 Private Sub CommandButton_0mm4_Click()
 makeNice
 Selection.NumberFormat = "0"" mm""" & ChrW(&H2074)
-autoMerge 16, 0
+autoMerge 26, 0
 
 AppActivate Application.Caption
 
@@ -3289,11 +3162,16 @@ End Sub
 
 Private Sub CommandButton_00percent_Click()
 makeNice
+Dim xg, xgg As String
+On Error Resume Next
 
-If ActiveCell.Value = 1 Then 'for 100%
+xg = Str(ActiveCell.Value)
+xgg = Left(xg, 3)
+If xgg <> " .0" Then
     Selection.NumberFormat = "0%"
 Else
     Selection.NumberFormat = "0.0%"
+    
 End If
 
 autoMerge 30, 0
@@ -3301,7 +3179,7 @@ AppActivate Application.Caption
 End Sub
 
 Private Sub CommandButton_lessequal_Click()
-On Error GoTo eh
+On Error Resume Next
 Dim Counter As Integer
 
 zzzd:
@@ -3340,15 +3218,14 @@ End If
 
 Done:
     Exit Sub
-eh:
-    MsgBox ("err")
-End
+
 
 End Sub
 
 
 
 Private Sub CommandButton_ix_Click()
+On Error Resume Next
 makeNice
 ActiveCell.Resize(7, 9).Merge
 ActiveCell.UnMerge
@@ -3399,7 +3276,7 @@ End Sub
 
 
 Private Sub CommandButton_startup_Click()
-On Error GoTo eh
+On Error Resume Next
 'if variable not defined - in VBA Click on Tools-References in the VBE,
 'and scroll down and tick the entry for Microsoft Visual Basic for Applications Extensibility 5.3.
 
@@ -3424,11 +3301,6 @@ vbc.Name = "Module1"
 strCode = "Private Sub Workbook_Open()" & vbNewLine & "    SMC.Show" & vbNewLine & "End Sub"
 vbc.CodeModule.AddFromString strCode
 
-Done:
-    Exit Sub
-eh:
-    MsgBox ("check recommendations in code")
-    End
     
 End Sub
 
@@ -3475,7 +3347,7 @@ SendKeys "{F2}"
 End Sub
 
 Private Sub CommandButton_check_Click()
-On Error GoTo eh
+On Error Resume Next
 
 Dim x, y, z, tt, ff, zz, xx, vv As String
 Dim f, mc As Range
@@ -3602,15 +3474,14 @@ Next
 
 Done:
     Exit Sub
-eh:
-    End
+
 
 End Sub
 
 
 
 Private Sub CommandButton_kN_Click()
-On Error GoTo eh
+On Error Resume Next
 
 Dim x, y As String
 
@@ -3645,13 +3516,13 @@ End If
 
 Done:
     Exit Sub
-eh:
-    MsgBox ("Check cells")
+
 
 End Sub
 
 Private Sub CommandButton_MPa_Click()
 Dim x, y As String
+On Error Resume Next
 ''''MsgBox ("kN start")
 x = ActiveCell.Value2
 '''MsgBox ("!!!!!" & X)
@@ -3676,6 +3547,7 @@ End Sub
 
 Private Sub CommandButton_GPa_Click()
 Dim x, y As String
+On Error Resume Next
 ''''MsgBox ("kN start")
 x = ActiveCell.Value2
 '''MsgBox ("!!!!!" & X)
@@ -3700,7 +3572,7 @@ End Sub
 
 Private Sub CommandButton_m_Click()
 Dim x, y As String
-
+On Error Resume Next
 x = ActiveCell.Value
 
 If x = "" Then
@@ -3725,8 +3597,9 @@ End If
 
 End Sub
 
-    Private Sub CommandButton_m2_Click()
+Private Sub CommandButton_m2_Click()
 Dim x, y As String
+On Error Resume Next
 x = ActiveCell.Value
 If x = "" Then
     y = "do nothing"
@@ -3748,18 +3621,62 @@ End If
 End Sub
 
 
+Private Sub CommandButton_brackets_Click()
+Dim x, y, t, myString As String
+On Error Resume Next
+
+Dim cell As Object
+Dim count As Integer
+count = 0
+For Each cell In Selection
+    count = count + 1
+Next cell
+
+If count < 2 Then GoTo enddd
+
+myString = Selection.Address
+x = Replace(myString, "$", "")
+y = Split(x, ":")
+
+Set cell = Range(y(0))
+cell.Activate
+ActiveCell.Offset(0, -1).Activate
+t = ActiveCell.Text
+If InStr(t, "(") = 0 Then
+    ActiveCell.Formula2 = t + " ("
+    ActiveCell.HorizontalAlignment = xlRight
+    Range(y(1)).Offset(0, 1).Activate
+    t = ActiveCell.Text
+    ActiveCell.Formula2 = ") " + t
+    ActiveCell.Offset(0, 1).Activate
+    ActiveCell.HorizontalAlignment = xlLeft
+
+Else 'remove brackets if exists
+    t = Replace(t, "(", "")
+    ActiveCell.Formula2 = t
+    ActiveCell.HorizontalAlignment = xlRight
+    Range(y(1)).Offset(0, 1).Activate
+    t = ActiveCell.Text
+    t = Replace(t, ")", "")
+    ActiveCell.Formula2 = t
+    ActiveCell.Offset(0, 1).Activate
+    ActiveCell.HorizontalAlignment = xlLeft
+    
+End If
+
+AppActivate Application.Caption
+
+enddd:
+
+End Sub
+
 Private Sub CommandButton2_Click()
-On Error GoTo eh
+On Error Resume Next
 Dim cell As Range
 
 For Each cell In Selection
     cell.Formula2 = Replace(cell.Formula2, "$", "")
 Next cell
-
-Done:
-    Exit Sub
-eh:
-    End
 
 End Sub
 
@@ -3769,41 +3686,30 @@ End Sub
 
 Private Sub CommandButton3_Click()
 
-On Error GoTo eh
+On Error Resume Next
 
 ActiveCell.Delete Shift:=xlToLeft
 AppActivate Application.Caption
 
-Done:
-    Exit Sub
-eh:
-    End
 End Sub
 
 Private Sub CommandButton4_Click()
-On Error GoTo eh
+On Error Resume Next
 Dim chromePath As String
 chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
 Shell (chromePath & " -url https://www.dropbox.com/s/4qtq6v2bqvbi0z2/SESOC%20-%20Simplified_Design_of_Steel_Members_page63-67.pdf?dl=0")
-Done:
-    Exit Sub
-eh:
-    MsgBox ("check file address or Chrome address C:\Program Files (x86)\Google\Chrome\Application\chrome.exe")
-    End
+
+'MsgBox ("check file address or Chrome address C:\Program Files (x86)\Google\Chrome\Application\chrome.exe")
+
     
 End Sub
 
 Private Sub CommandButton5_Click()
-On Error GoTo eh
+On Error Resume Next
 Dim chromePath As String
 chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
 Shell (chromePath & " -url https://www.dropbox.com/s/hm82e3auheiakxb/SESOC%20-%20Simplified_Design_of_Steel_Members_page69-76.pdf?dl=0")
 
-Done:
-    Exit Sub
-eh:
-    MsgBox ("check file address or Chrome address C:\Program Files (x86)\Google\Chrome\Application\chrome.exe")
-    End
 
 End Sub
 
@@ -3813,11 +3719,11 @@ AppActivate Application.Caption
 End Sub
 
 Private Sub CommandButton7_Click()
+On Error Resume Next
 'Allows you to write formula like 5kn*6
 Dim xv, yg, zt, tg, fd, zj, xm, vm, Result, Result2 As String
 Dim Counter As Integer
-
-'On Error GoTo Done
+Dim loop_counter As Integer
 
 xv = ActiveCell.Formula
 
@@ -3825,6 +3731,8 @@ xv = Replace(xv, "=", "")
 
 If xv = "" Then GoTo Done
 ActiveCell.Offset(1, 0).Select
+
+loop_counter = 1
 
 start:
 '''''''MsgBox ("xv in beginning = " & xv)
@@ -3891,7 +3799,8 @@ ElseIf Mid(xv, 1, 1) = "+" Then
     CommandButton_plus_Click
 End If
 ''and LOOP
-GoTo start
+loop_counter = loop_counter + 1
+If loop_counter < 100 Then GoTo start 'safety catch
 
 ToExecution:
 '''''''MsgBox ("=")
@@ -3907,10 +3816,13 @@ End Sub
 
 Private Sub CommandButton8_Click()
 'get 3 actual numbers like 1/3=0.333
+On Error Resume Next
+
 Dim x, yn, gn As String
 Dim Counter, Counter2 As Integer
 Dim i, StringLength As Integer
 Dim trigger As Boolean
+Dim loop_counter As Integer
 
 makeNice
 If ActiveCell.NumberFormat = "General" Then
@@ -3918,6 +3830,7 @@ If ActiveCell.NumberFormat = "General" Then
      ActiveCell.NumberFormat = "0.00"
 End If
 
+loop_counter = 1
 
 start:
 'reset start
@@ -4010,7 +3923,8 @@ pam:
         ActiveCell.Resize(1, 2 + xx).Merge
         
     End If
-    GoTo start
+    loop_counter = loop_counter + 1
+    If loop_counter < 100 Then GoTo start
 End If
 
 Done:
@@ -4023,9 +3937,10 @@ Function GetTitle(sheet_ As Worksheet, cell_address As String, numb As String) A
 'adress is for title sheet
 'numb is the number on the left
 Dim tst, mmt As String
+On Error Resume Next
 
 exwhile6:
-If sheet_.Index + 1 <= Application.Sheets.Count Then
+If sheet_.Index + 1 <= Application.Sheets.count Then
     If Worksheets(sheet_.Index + 1).Visible = 0 Then
         Set sheet_ = Worksheets(sheet_.Index + 1)
         'MsgBox (sheet_.Name)
@@ -4069,7 +3984,8 @@ End Function
 
 Private Sub CommandButton9_Click()
 
-On Error GoTo eh
+On Error Resume Next
+'MsgBox ("check merged cells at the bottom")
 
 Dim sheet_ As Worksheet
 
@@ -4100,52 +4016,34 @@ Set x = GetTitle(x, "E53", "19")
 Set x = GetTitle(x, "E54", "20")
 Set x = GetTitle(x, "E55", "21")
 
-Done:
-    Exit Sub
-
-eh:
-MsgBox ("check merged cells at the bottom")
-
 End Sub
 
 Private Sub concrete_beam_Click()
-On Error GoTo eh
+On Error Resume Next
+'MsgBox ("Can't find sheet MISC")
 Sheets("MISC").Range("B1054:AQ1131").Copy
 
 ActiveSheet.Paste
 
 Application.CutCopyMode = False
 
-Done:
-    Exit Sub
-eh:
-    MsgBox ("Can't find sheet MISC")
 End Sub
 
-Private Sub Image1_BeforeDragOver(ByVal Cancel As MSForms.ReturnBoolean, ByVal Data As MSForms.DataObject, ByVal x As Single, ByVal y As Single, ByVal DragState As MSForms.fmDragState, ByVal Effect As MSForms.ReturnEffect, ByVal Shift As Integer)
-
-End Sub
-
-Private Sub Label10_Click()
-
-End Sub
 
 Private Sub steel_beam_Click()
-On Error GoTo eh
+On Error Resume Next
 Sheets("MISC").Range("B1717:V1794").Copy 'AQ instead of V if required
 
 ActiveSheet.Paste
 
 Application.CutCopyMode = False
 
-Done:
-    Exit Sub
-eh:
-    MsgBox ("Can't find sheet MISC")
+'MsgBox ("Can't find sheet MISC")
+
 End Sub
 
 Private Sub timber_beam_Click()
-On Error GoTo eh
+On Error Resume Next
 
 Sheets("MISC").Range("B391:AQ507").Copy
 
@@ -4155,14 +4053,12 @@ Application.CutCopyMode = False
 
 Done:
     Exit Sub
-eh:
-    MsgBox ("Can't find sheet MISC")
 
 End Sub
 
 
 Private Sub CommandButtonx_Click()
-On Error GoTo eh
+On Error Resume Next
 Dim Counter As Integer
 
 begg:
@@ -4210,35 +4106,18 @@ End If
 
 Done:
     Exit Sub
-eh:
-    MsgBox ("err")
-End
 
-End Sub
-
-Private Sub Label8_Click()
-
-End Sub
-
-Private Sub Label9_Click()
 
 End Sub
 
 
 Private Sub timber_column_Click()
-On Error GoTo eh
+On Error Resume Next
 Sheets("MISC").Range("B547:V624").Copy 'AQ instead of V if needed
 
 ActiveSheet.Paste
 
 Application.CutCopyMode = False
-Done:
-    Exit Sub
-eh:
-    MsgBox ("Can't find sheet MISC")
-
-End Sub
-
-Private Sub UserForm_Click()
+'MsgBox ("Can't find sheet MISC")
 
 End Sub

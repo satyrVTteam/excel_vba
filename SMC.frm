@@ -23,6 +23,7 @@ Attribute VB_Exposed = False
 Option Explicit
 Public PreviousCell As Range
 Public PreviouseCellSheet As String
+Public counter_main As Integer
 
 #If VBA7 Then
 Private Declare PtrSafe Function OpenClipboard Lib "user32.dll" (ByVal hwnd As LongPtr) As Long
@@ -517,6 +518,14 @@ Dim acell, cell, cellx, startcell As Range
 Dim Counter, ctr, DollarCount_kN, DollarCount_kNm, DollarCount_m, DollarCount_kPa, DollarCount_kNperm, DollarCount_m2 As Integer
 Dim ccheck, double_element_equation  As Boolean
 Dim loop_counter As Integer
+Dim chch As Boolean
+
+counter_main = counter_main + 1
+If counter_main > 10 Then
+    MsgBox "ComplexCalculation_Click() was called in endless loop from outside and will be closed"
+    End
+End If
+
 
 'start building equiation
 x = "="
@@ -570,7 +579,27 @@ edasi:
 m = Range(ActiveCell.Address).Column - 1
 Range(ActiveCell, ActiveCell.Offset(0, -m)).Select
 
+'MAIN>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+
+
+
+
+'warning
 For Each cell In Selection
+    'MsgBox cell.Value2
+    If cell.Value2 = ")" Or cell.Value2 = "(" Then
+        chch = True 'check for single brackets and do not calculate in this case but we will get the wrong calculation because of the cell shift so be AWARE!
+        MsgBox "Please, do not use brackets in separate cells"
+        GoTo Done
+    End If
+Next cell
+
+
+
+
+For Each cell In Selection
+    
     
     If InStr(cell.Value, "/") > 0 Then
         Set cellx = cell.Offset(0, -1)
@@ -642,16 +671,81 @@ For Each cell In Selection
 'MsgBox ("meas = " & meas)
 'MsgBox (cellx.NumberFormat)
 
+'trying to catch (
+    
+        
+    'If chch = False Then
+        
+        'If InStr(cell.Value, "(") > 0 Then
+           ' x = x & "("
+        'End If
+            
+        'If InStr(cell.Value, ")") > 0 Then
+           ' x = x & ")"
+        'End If
+        
+    'now trying to fix my stupid algorhytm >>>>>>>
+       'If Right(x, 2) = "+)" Then
+           ' x = Left(x, Len(x) - 2)
+            'x = x & ")+"
+        'End If
+        
+        'If Right(x, 2) = "-)" Then
+            'x = Left(x, Len(x) - 2)
+            'x = x & ")-"
+        'End If
+        
+        'If Right(x, 2) = "/)" Then
+            'x = Left(x, Len(x) - 2)
+            'x = x & ")/"
+       ' End If
+        
+        'If Right(x, 2) = "*)" Then
+           ' x = Left(x, Len(x) - 2)
+            'x = x & ")*"
+        'End If
+    'End If
+ 'now trying to fix my stupid algorhytm <<<<<<<<
+    
+    'MsgBox x
+
 Next cell
 
-'LAST
-'x = x & acell.Value
+
+
+'trying to fix this stupid situation
+'If Right(x, 1) = ")" Then x = Left(x, Len(x) - 1)
+
+'LAST member of the equation (I know it's dummy not having it in the loop)
+
 x = x & "R[0]C[" & -startcell.Column + acell.Column & "]"
+
+'trying to catch the latest )
+If InStr(startcell.Offset(0, -1).Value, ")") > 0 Then
+    x = x & ")"
+End If
+
+If InStr(startcell.Offset(0, -2).Value, ")") > 0 Then
+    x = x & ")"
+End If
+
+'MsgBox "total" & x
+
+
 unitz = unitz + acell.NumberFormat
 Counter = Counter + 1
 
 startcell.FormulaR1C1 = x
 startcell.Select
+
+'MAIN<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+
+
+
+
 
 '> START guess units for simple situations like 1kN+1kN+1kN
 
@@ -683,6 +777,7 @@ End If
 
 If double_element_equation <> True Then
     'Count how many occurrences there are
+    
     DollarCount_kN = (Len(unitz) - Len(Replace(unitz, "kN" & Chr(34), ""))) / Len("kN" & Chr(34))
     DollarCount_kNm = (Len(unitz) - Len(Replace(unitz, "kNm" & Chr(34), ""))) / Len("kNm" & Chr(34))
     DollarCount_m = (Len(unitz) - Len(Replace(unitz, " m" & Chr(34), ""))) / Len(" m" & Chr(34))
@@ -690,7 +785,7 @@ If double_element_equation <> True Then
     DollarCount_kNperm = (Len(unitz) - Len(Replace(unitz, "kN/m" & Chr(34), ""))) / Len("kN/m" & Chr(34))
     DollarCount_m2 = (Len(unitz) - Len(Replace(unitz, "m²" & Chr(34), ""))) / Len("m²" & Chr(34))
     
-    'MsgBox ("unitz = " & unitz & " dollar count = " & DollarCount_kN & " counter = " & counter)
+    'MsgBox ("unitz = " & unitz & " dollar count = " & DollarCount_kN & " counter = " & Counter)
     
     If DollarCount_kN = Counter Then
         Call CommandButton_kN_Click
@@ -770,12 +865,15 @@ If Len(ActiveCell.Formula) > 0 Then
     If Left(ActiveCell.Formula, 1) = "=" Then
         If OptionButton_round = True Then
             ActiveCell.Formula = "=round(" & Right(ActiveCell.Formula, Len(ActiveCell.Formula) - 1) & ",0)"
+            
         Else
             If OptionButton_up = True Then
                 ActiveCell.Formula = "=roundup(" & Right(ActiveCell.Formula, Len(ActiveCell.Formula) - 1) & ",0)"
+                
             Else
                 If OptionButton_down = True Then
                     ActiveCell.Formula = "=rounddown(" & Right(ActiveCell.Formula, Len(ActiveCell.Formula) - 1) & ",0)"
+                    
                 End If
             End If
         End If
@@ -809,12 +907,15 @@ If Len(ActiveCell.Formula) > 0 Then
     If Left(ActiveCell.Formula, 1) = "=" Then
         If OptionButton_round = True Then
             ActiveCell.Formula = "=round(" & Right(ActiveCell.Formula, Len(ActiveCell.Formula) - 1) & ",1)"
+            
         Else
             If OptionButton_up = True Then
                 ActiveCell.Formula = "=roundup(" & Right(ActiveCell.Formula, Len(ActiveCell.Formula) - 1) & ",1)"
+                
             Else
                 If OptionButton_down = True Then
                     ActiveCell.Formula = "=rounddown(" & Right(ActiveCell.Formula, Len(ActiveCell.Formula) - 1) & ",1)"
+                    
                 End If
             End If
         End If
@@ -847,12 +948,15 @@ If Len(ActiveCell.Formula) > 0 Then
     If Left(ActiveCell.Formula, 1) = "=" Then
         If OptionButton_round = True Then
             ActiveCell.Formula = "=round(" & Right(ActiveCell.Formula, Len(ActiveCell.Formula) - 1) & ",2)"
+            
         Else
             If OptionButton_up = True Then
                 ActiveCell.Formula = "=roundup(" & Right(ActiveCell.Formula, Len(ActiveCell.Formula) - 1) & ",2)"
+                
             Else
                 If OptionButton_down = True Then
                     ActiveCell.Formula = "=rounddown(" & Right(ActiveCell.Formula, Len(ActiveCell.Formula) - 1) & ",2)"
+                    a
                 End If
             End If
         End If
@@ -1096,6 +1200,31 @@ End If
 
 End Sub
 
+Private Sub CommandButton_areas_Click()
+
+MsgBox _
+"          1 bar         5 bars" _
+& vbCrLf & _
+"Ø8    - 50.3 mm²  252 mm²" _
+& vbCrLf & _
+"Ø10  - 78.5 mm²  393 mm²" _
+& vbCrLf & _
+"Ø12  - 113 mm²   566 mm²" _
+& vbCrLf & _
+"Ø16  - 201 mm²   1005 mm²" _
+& vbCrLf & _
+"Ø20  - 314 mm²   1571 mm²" _
+& vbCrLf & _
+"Ø25  - 491 mm²   2454 mm²" _
+& vbCrLf & _
+"Ø32  - 804 mm²   4021 mm²" _
+& vbCrLf & _
+"Ø40 - 1257 mm²  6283 mm²"
+
+
+
+End Sub
+
 Private Sub CommandButton_beta_Click()
 Dim txt As String
 txt = ChrW(&H3B2)
@@ -1181,7 +1310,7 @@ Private Sub CommandButton_BU_Click()
 makeNice
 Dim xxx, yyy, zzz As String
 Selection.NumberFormat = "0"" BU"""
-autoMerge 16, 0
+autoMerge 17, 0
 
 AppActivate Application.Caption
 End Sub
@@ -1359,8 +1488,15 @@ Private Sub CommandButton_check_kN_Click()
 '2. if cell is empty - calculates equiation (the code in other sub!)
 '3. if cell contains a link to other cell - gets its units
 
+counter_main = 0 'see global variables in the beginning
+
 On Error Resume Next
 start_check_kN:
+
+If counter_main > 5 Then
+    MsgBox "Error: endless loop in MAGIC happens, command cancelled"
+    GoTo Done
+End If
 
 Dim y, z, tt, zz, xx, vv, ttx As String
 Dim ctr As Integer
@@ -1512,7 +1648,7 @@ ElseIf InStr(xx, "-") > 1 And double_element_equation = True Then
 ElseIf xx = "" Then
     ComplexCalculation_Click
     GoTo start_check_kN
-ElseIf xx = "=" Then
+ElseIf xx = "=" Or xx = ") =" Or xx = ")=" Then
     ActiveCell.Value = ""
     ComplexCalculation_Click
     GoTo start_check_kN
@@ -2106,13 +2242,8 @@ End Sub
 
 Private Sub CommandButton_insert4_row_Click()
 Application.CutCopyMode = False ' clear clipboard
-Dim x As Long
-  For x = 1 To 4
-    ActiveCell.Offset(1).EntireRow.Insert Shift:=xlDown, CopyOrigin:=xlFormatFromRightOrBelow
-    ActiveCell.EntireRow.Copy
-    ActiveCell.Offset(1).EntireRow.PasteSpecial xlPasteFormats
-    Application.CutCopyMode = False
-  Next x
+ActiveCell.EntireRow.Resize(4).Insert Shift:=xlDown
+Application.CutCopyMode = False
 
 End Sub
 
@@ -2259,6 +2390,7 @@ If ActiveCell.MergeCells And Counter = mcells Then
     Selection.Font.Size = 12
     'Selection.Font.Color = _
     'RGB(0, 0, 0)
+    Selection.WrapText = False
     ActiveCell.UnMerge
     'Selection(0).Activate    'not working
     ActiveCell.Offset(0, 1).Activate
@@ -2531,13 +2663,109 @@ End Sub
 
 Private Sub CommandButton_plus_sheet_Click()
 Application.CutCopyMode = False ' clear clipboard
-Dim x As Long
-  For x = 1 To 39 '39 rows in a sheet
-    ActiveCell.Offset(1).EntireRow.Insert Shift:=xlDown, CopyOrigin:=xlFormatFromRightOrBelow
-    ActiveCell.EntireRow.Copy
-    ActiveCell.Offset(1).EntireRow.PasteSpecial xlPasteFormats
-    Application.CutCopyMode = False
-  Next x
+ActiveCell.EntireRow.Resize(39).Insert Shift:=xlDown
+Application.CutCopyMode = False ' clear clipboard
+
+End Sub
+
+Private Sub CommandButton_RC_M_Click()
+makeNice
+ActiveCell.Resize(1, 20).Merge
+ActiveCell.UnMerge
+
+ActiveCell.FormulaR1C1 = "0.85"
+ActiveCell.Resize(1, 2).Merge
+ActiveCell.HorizontalAlignment = xlRight
+Selection.NumberFormat = "0.00"
+ActiveCell.Offset(0, 1).Activate
+ActiveCell.FormulaR1C1 = "×"
+ActiveCell.HorizontalAlignment = xlCenter
+ActiveCell.Offset(0, 1).Activate
+ActiveCell.FormulaR1C1 = "314"
+Selection.NumberFormat = "0"" mm²"""
+ActiveCell.Resize(1, 3).Merge
+ActiveCell.Offset(0, 1).Activate
+ActiveCell.FormulaR1C1 = "×"
+ActiveCell.HorizontalAlignment = xlCenter
+ActiveCell.Offset(0, 1).Activate
+ActiveCell.FormulaR1C1 = "1"
+ActiveCell.Resize(1, 2).Merge
+Selection.NumberFormat = "0"" bars"""
+ActiveCell.Offset(0, 1).Activate
+ActiveCell.FormulaR1C1 = "×"
+ActiveCell.HorizontalAlignment = xlCenter
+ActiveCell.Offset(0, 1).Activate
+ActiveCell.FormulaR1C1 = "500"
+ActiveCell.Resize(1, 3).Merge
+Selection.NumberFormat = "0"" MPa"""
+ActiveCell.Offset(0, 1).Activate
+ActiveCell.FormulaR1C1 = "×"
+ActiveCell.HorizontalAlignment = xlCenter
+ActiveCell.Offset(0, 1).Activate
+ActiveCell.FormulaR1C1 = "1"
+ActiveCell.Resize(1, 2).Merge
+Selection.NumberFormat = "0.0"" m"""
+ActiveCell.Offset(0, 1).Activate
+ActiveCell.FormulaR1C1 = "="
+ActiveCell.Offset(0, 1).Activate
+ActiveCell.FormulaR1C1 = "=R[0]C[-17]*(R[0]C[-14]/1000000)*R[0]C[-10]*(R[0]C[-7]*1000)*R[0]C[-3]"
+ActiveCell.Resize(1, 3).Merge
+Selection.NumberFormat = "0"" kNm"""
+ActiveCell.Offset(0, -10).Activate
+AppActivate Application.Caption
+SendKeys "{F2}"
+SendKeys "^a"
+End Sub
+
+Private Sub CommandButton_RC_V_Click()
+
+makeNice
+ActiveCell.Resize(1, 20).Merge
+ActiveCell.UnMerge
+
+ActiveCell.FormulaR1C1 = "0.65"
+ActiveCell.Resize(1, 2).Merge
+ActiveCell.HorizontalAlignment = xlRight
+Selection.NumberFormat = "0.00"
+ActiveCell.Offset(0, 1).Activate
+ActiveCell.FormulaR1C1 = "×"
+ActiveCell.HorizontalAlignment = xlCenter
+ActiveCell.Offset(0, 1).Activate
+ActiveCell.FormulaR1C1 = "0.62"
+ActiveCell.Resize(1, 2).Merge
+ActiveCell.HorizontalAlignment = xlCenter
+Selection.NumberFormat = "0.00"
+ActiveCell.Offset(0, 1).Activate
+ActiveCell.FormulaR1C1 = "×"
+ActiveCell.HorizontalAlignment = xlCenter
+ActiveCell.Offset(0, 1).Activate
+ActiveCell.FormulaR1C1 = "1"
+ActiveCell.Resize(1, 2).Merge
+Selection.NumberFormat = "0"" bars"""
+ActiveCell.Offset(0, 1).Activate
+ActiveCell.FormulaR1C1 = "×"
+ActiveCell.HorizontalAlignment = xlCenter
+ActiveCell.Offset(0, 1).Activate
+ActiveCell.FormulaR1C1 = "314"
+Selection.NumberFormat = "0"" mm²"""
+ActiveCell.Resize(1, 3).Merge
+ActiveCell.Offset(0, 1).Activate
+ActiveCell.FormulaR1C1 = "×"
+ActiveCell.HorizontalAlignment = xlCenter
+ActiveCell.Offset(0, 1).Activate
+ActiveCell.FormulaR1C1 = "500"
+ActiveCell.Resize(1, 3).Merge
+Selection.NumberFormat = "0"" MPa"""
+ActiveCell.Offset(0, 1).Activate
+ActiveCell.FormulaR1C1 = "="
+ActiveCell.Offset(0, 1).Activate
+ActiveCell.FormulaR1C1 = "=R[0]C[-17]*R[0]C[-14]*R[0]C[-11]*(R[0]C[-8]/1000000)*(R[0]C[-4]*1000)"
+ActiveCell.Resize(1, 3).Merge
+Selection.NumberFormat = "0"" kN"""
+ActiveCell.Offset(0, -11).Activate
+AppActivate Application.Caption
+SendKeys "{F2}"
+SendKeys "^a"
 
 End Sub
 
@@ -2660,6 +2888,7 @@ ActiveCell.FormulaR1C1 = "="
 ActiveCell.Offset(0, 1).Activate
 ActiveCell.FormulaR1C1 = "5 q × L4 / 384 E × I"
 ActiveCell.Characters(start:=8, Length:=1).Font.Superscript = True
+Selection.WrapText = False
 ActiveCell.Offset(0, 5).Activate
 ActiveCell.FormulaR1C1 = "="
 ActiveCell.Offset(0, 1).Activate
@@ -2684,6 +2913,7 @@ ActiveCell.Offset(0, 1).Activate
 ActiveCell.FormulaR1C1 = ChrW(&H2074)
 ActiveCell.Offset(2, -15).Activate
 ActiveCell.FormulaR1C1 = "/ 384 ×"
+Selection.WrapText = False
 ActiveCell.Offset(0, 2).Activate
 'E
 ActiveCell.Resize(1, 3).Merge
@@ -2825,12 +3055,15 @@ ActiveCell.UnMerge
 ActiveCell.NumberFormat = "@"
 ActiveCell.FormulaR1C1 = "M*x"
 ActiveCell.Characters(start:=3, Length:=3).Font.Subscript = True
+Selection.WrapText = False
+
 
 ActiveCell.Offset(0, 2).Activate
 ActiveCell.FormulaR1C1 = "="
 ActiveCell.Offset(0, 1).Activate
 ActiveCell.FormulaR1C1 = "q × L2 / 8"
 ActiveCell.Characters(start:=6, Length:=1).Font.Superscript = True
+Selection.WrapText = False
 ActiveCell.Offset(0, 3).Activate
 ActiveCell.FormulaR1C1 = "="
 ActiveCell.Offset(0, 1).Activate
@@ -2997,25 +3230,30 @@ End Sub
 Private Sub CommandButton_comp_Click()
 
 On Error Resume Next
-ActiveCell.Resize(1, 3).Merge
-makeNice
-ActiveCell.FormulaR1C1 = "=1"
-Selection.NumberFormat = "0.0"" kNm"""
-ActiveCell.Offset(0, 1).Activate
 
+'clear the row and format>>>>
+makeNice
+ActiveCell.Resize(1, 17).Merge
+ActiveCell.UnMerge
+'<<<<<<clear the row and format
+
+ActiveCell.Resize(1, 3).Merge
+ActiveCell.FormulaR1C1 = "=1"
+Selection.NumberFormat = "0"" kNm"""
+ActiveCell.Offset(0, 1).Activate
 ActiveCell.Offset(0, 1).Activate
 ActiveCell.FormulaR1C1 = "=IF(RC[-4]<RC[1]," & Chr(34) & "< " & Chr(34) & "," & Chr(34) & ">" & Chr(34) & ")"
-makeNice
+
 ActiveCell.Offset(0, 1).Activate
 ActiveCell.FormulaR1C1 = "="
-makeNice
+
 ActiveCell.Resize(1, 3).Merge
-makeNice
-Selection.NumberFormat = "0.0"" kNm"""
+
+Selection.NumberFormat = "0"" kNm"""
 ActiveCell.Offset(0, 2).Activate
 ActiveCell.FormulaR1C1 = "=IF(ISNUMBER(SEARCH(" & Chr(34) & "<" & Chr(34) & ",RC[-5]))," & Chr(34) & ChrW(&H2192) & " OK" & Chr(34) & ", " & Chr(34) & "NOT OK, PLEASE REFER TO ENGINEER" & Chr(34) & ")"
 
-makeNice
+
 
 'conditional format
 
@@ -3267,9 +3505,11 @@ makeNice
 ActiveCell.NumberFormat = "@"
 ActiveCell.FormulaR1C1 = ChrW(&H2192)
 ActiveCell.Offset(0, 1).Activate
+ActiveCell.FormulaR1C1 = "OK"
 makeNice
 AppActivate Application.Caption
 SendKeys "{F2}"
+SendKeys "^a"
 End Sub
 
 
@@ -3277,29 +3517,32 @@ End Sub
 
 Private Sub CommandButton_startup_Click()
 On Error Resume Next
-'if variable not defined - in VBA Click on Tools-References in the VBE,
-'and scroll down and tick the entry for Microsoft Visual Basic for Applications Extensibility 5.3.
+MsgBox _
+"NOTE: make sure that in your Windows: Settings: Windows display language --- is set to English or ASCII symbols would work incorrectly" _
+& vbCrLf & vbCrLf & _
+">>To add at autostart:<<" _
+& vbCrLf & _
+"Paste to " & ChrW(34) & "ThisWorkbook" & ChrW(34) & " the code below. Create a new module " & ChrW(34) & "Module1" & ChrW(34) & " and paste the same code into it too." _
+& vbCrLf & vbCrLf & _
+"     Private Sub Workbook_Open()" & vbCrLf & "        SMC.Show" & vbCrLf & "     End Sub" _
+& vbCrLf & vbCrLf & vbCrLf & _
+"Use Autohotkey script below to avoid jumping down the cell after pressing Enter." _
+& vbCrLf & vbCrLf & _
+"#IfWinActive, Excel" & vbCrLf & "Enter:: Send, {Ctrl Down}{Enter}{Ctrl Up}" & vbCrLf & "NumpadEnter::Send, {Ctrl Down}{Enter}{Ctrl Up}" _
+& vbCrLf & vbCrLf & _
+"You can use colored buttons to use Autohotkey ImageSearch command, I prefer Ctrl+Left as /, Ctrl+Right as *, Ctrl+Right Shift as MAGIC, etc" _
+& vbCrLf & vbCrLf & vbCrLf & _
+"For assistance write to daniil.timin@gmail.com"
 
-'if access error 1004 - turn on in excel - Trust Center- macros - vba
 
-''Create on load sub
-With ActiveWorkbook.VBProject.VBComponents("ThisWorkbook").CodeModule
-   .InsertLines 1, "Private Sub Workbook_Open()"
-   .InsertLines 2, "   SMC.Show"
-   .InsertLines 3, "End Sub"
-End With
+Dim answer As Integer
+answer = MsgBox("Press YES to copy to clipboard the code for Excel and NO to copy the code for Autohotkey", vbQuestion + vbYesNo + vbDefaultButton2, "Message Box Title")
 
-
-''Add new module with code
-
-Dim vbp As VBProject
-Dim vbc As VBComponent
-Dim strCode
-Set vbp = Application.VBE.ActiveVBProject
-Set vbc = vbp.VBComponents.Add(vbext_ct_StdModule)
-vbc.Name = "Module1"
-strCode = "Private Sub Workbook_Open()" & vbNewLine & "    SMC.Show" & vbNewLine & "End Sub"
-vbc.CodeModule.AddFromString strCode
+If answer = vbYes Then
+  SetClipboard ("Private Sub Workbook_Open()" & vbCrLf & "   SMC.Show" & vbCrLf & "End Sub")
+Else
+  SetClipboard ("#IfWinActive, Excel" & vbCrLf & "Enter:: Send, {Ctrl Down}{Enter}{Ctrl Up}" & vbCrLf & "NumpadEnter::Send, {Ctrl Down}{Enter}{Ctrl Up}")
+End If
 
     
 End Sub
@@ -3667,6 +3910,29 @@ End If
 AppActivate Application.Caption
 
 enddd:
+
+End Sub
+
+
+
+Private Sub CommandButton1_Ldb_Click()
+MsgBox _
+"NOTE: the better concrete - the lower value" _
+& vbCrLf & vbCrLf & _
+"Ldb = 45d (for 30 MPa)" _
+& vbCrLf & _
+"Ldh = 15d (for 30 MPa)" _
+& vbCrLf & _
+"             12d hook length for deformed bars, starting from the plain" _
+& vbCrLf & _
+"             90 degrees hook" _
+& vbCrLf & vbCrLf & _
+"HOOKS:" _
+& vbCrLf & _
+"4d or 65 mm for semi circular hook (plain only)" _
+& vbCrLf & _
+"6d (deformed) 8d (plain) for 45 degrees hooks"
+
 
 End Sub
 

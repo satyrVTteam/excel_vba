@@ -19,6 +19,7 @@ Attribute VB_Exposed = False
 
 
 
+
 ' FROM COPYPASTE MODULE
 Option Explicit
 Public PreviousCell As Range
@@ -1310,7 +1311,7 @@ Private Sub CommandButton_BU_Click()
 makeNice
 Dim xxx, yyy, zzz As String
 Selection.NumberFormat = "0"" BU"""
-autoMerge 17, 0
+autoMerge 18, 0
 
 AppActivate Application.Caption
 End Sub
@@ -4355,6 +4356,7 @@ zzzd:
             AppActivate Application.Caption
         End If
         Counter = Counter + 1
+    
     
     ElseIf ActiveCell.FormulaR1C1 = "×" Then
         ActiveCell.Offset(0, 1).Activate

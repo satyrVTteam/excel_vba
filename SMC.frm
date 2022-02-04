@@ -20,6 +20,7 @@ Attribute VB_Exposed = False
 
 
 
+
 ' FROM COPYPASTE MODULE
 Option Explicit
 Public PreviousCell As Range
@@ -4252,7 +4253,16 @@ End Function
 Private Sub CommandButton9_Click()
 
 On Error Resume Next
-'MsgBox ("check merged cells at the bottom")
+Dim answer As Integer
+answer = MsgBox("Put your header text in cell D2  in every section - they will be updated TO the cover sheet. " & vbCrLf & vbCrLf _
+& "Section number will be generated in cell B2 automatically FROM the cover sheet in order. " & vbCrLf & vbCrLf _
+& "Ensure the title table starts from row 34. " & vbCrLf & vbCrLf _
+& "Press YES to proceed.", vbQuestion + vbYesNo + vbDefaultButton2, "Message Box Title")
+
+If answer = vbNo Then
+  Exit Sub
+
+Else
 
 Dim sheet_ As Worksheet
 
@@ -4282,6 +4292,8 @@ Set x = GetTitle(x, "E52", "18")
 Set x = GetTitle(x, "E53", "19")
 Set x = GetTitle(x, "E54", "20")
 Set x = GetTitle(x, "E55", "21")
+
+End If
 
 End Sub
 
@@ -4356,7 +4368,6 @@ zzzd:
             AppActivate Application.Caption
         End If
         Counter = Counter + 1
-    
     
     ElseIf ActiveCell.FormulaR1C1 = "×" Then
         ActiveCell.Offset(0, 1).Activate

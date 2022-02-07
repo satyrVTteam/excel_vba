@@ -21,6 +21,7 @@ Attribute VB_Exposed = False
 
 
 
+
 ' FROM COPYPASTE MODULE
 Option Explicit
 Public PreviousCell As Range
@@ -958,7 +959,7 @@ If Len(ActiveCell.Formula) > 0 Then
             Else
                 If OptionButton_down = True Then
                     ActiveCell.Formula = "=rounddown(" & Right(ActiveCell.Formula, Len(ActiveCell.Formula) - 1) & ",2)"
-                    a
+                    
                 End If
             End If
         End If
@@ -1598,7 +1599,7 @@ ElseIf InStr(xx, "/") > 1 And double_element_equation = True Then
     zz = Split(tt, "/")
     y = Range(zz(0)).NumberFormat
     z = Range(zz(1)).NumberFormat
-
+    
     'order is important!
     If InStr(y + z, "kNm") > 1 And InStr(Replace(y + z, "kNm", "", , 1), "kNm") > 1 Then
         CommandButton_0super_Click
@@ -1608,16 +1609,18 @@ ElseIf InStr(xx, "/") > 1 And double_element_equation = True Then
         CommandButton_kPa_Click
     ElseIf InStr(y + z, "kN") > 1 And InStr(Replace(y + z, "kN", "", , 1), "m²") > 1 Then
         CommandButton_kPa_Click
-    ElseIf InStr(y + z, "kNm") > 1 And InStr(y + z, "m") > 1 Then
+    ElseIf InStr(y + z, "kNm") > 1 And InStr(Replace(y + z, "kNm", "", , 1), "m") > 1 Then
         CommandButton_kN_Click
     ElseIf InStr(y + z, "kPa") > 1 And InStr(y + z, "kN") > 1 Then
         CommandButton_m_Click
-    ElseIf InStr(y + z, "kN") > 1 And InStr(y + z, "m") > 1 Then
-        CommandButton_kNperm_Click
     ElseIf InStr(y + z, "kPa") > 1 And InStr(y + z, "m") > 1 Then
+        CommandButton_kNperm_Click
+    ElseIf InStr(y + z, "kN") > 1 And InStr(Replace(y + z, "kN", "", , 1), "m") And InStr(y + z, "kNm") = 0 Then
         CommandButton_kNperm_Click
     ElseIf InStr(y + z, "mm") > 1 And InStr(Replace(y + z, "mm", "", , 1), "m") > 1 And InStr(y + z, "kN") < 1 And InStr(y + z, "kPa") < 1 Then
         CommandButton_0super_Click
+    ElseIf InStr(y + z, "kNm") > 1 Then
+        CommandButton_kNm_Click
     ElseIf InStr(y + z, "kN") > 1 Then
         CommandButton_kN_Click
     ElseIf InStr(y + z, "m") > 1 Then
@@ -1631,14 +1634,14 @@ ElseIf InStr(xx, "-") > 1 And double_element_equation = True Then
     y = Range(zz(0)).NumberFormat
     z = Range(zz(1)).NumberFormat
     'order is important!
-    If InStr(y + z, "kNm") > 1 Then
-        CommandButton_kNm_Click
     ElseIf InStr(y + z, "kPa") > 1 Then
         CommandButton_kPa_Click
     ElseIf InStr(y + z, "kN") > 1 Then
         CommandButton_kN_Click
     ElseIf InStr(y + z, "m") > 1 Then
         CommandButton_m_Click
+    If InStr(y + z, "kNm") > 1 Then
+        CommandButton_kNm_Click
     Else
         CommandButton_0super_Click
     End If
@@ -3938,6 +3941,37 @@ MsgBox _
 
 End Sub
 
+Private Sub CommandButton10_Click()
+On Error Resume Next
+Dim cell As Range
+
+For Each cell In Selection
+    cell.Formula2 = Replace(cell.Formula2, "A", "$A$")
+    cell.Formula2 = Replace(cell.Formula2, "B", "$B$")
+    cell.Formula2 = Replace(cell.Formula2, "C", "$C$")
+    cell.Formula2 = Replace(cell.Formula2, "D", "$D$")
+    cell.Formula2 = Replace(cell.Formula2, "E", "$E$")
+    cell.Formula2 = Replace(cell.Formula2, "F", "$F$")
+    cell.Formula2 = Replace(cell.Formula2, "G", "$G$")
+    cell.Formula2 = Replace(cell.Formula2, "H", "$H$")
+    cell.Formula2 = Replace(cell.Formula2, "I", "$I$")
+    cell.Formula2 = Replace(cell.Formula2, "J", "$J$")
+    cell.Formula2 = Replace(cell.Formula2, "K", "$K$")
+    cell.Formula2 = Replace(cell.Formula2, "L", "$L$")
+    cell.Formula2 = Replace(cell.Formula2, "M", "$M$")
+    cell.Formula2 = Replace(cell.Formula2, "N", "$N$")
+    cell.Formula2 = Replace(cell.Formula2, "O", "$O$")
+    cell.Formula2 = Replace(cell.Formula2, "P", "$P$")
+    cell.Formula2 = Replace(cell.Formula2, "Q", "$Q$")
+    cell.Formula2 = Replace(cell.Formula2, "R", "$R$")
+    cell.Formula2 = Replace(cell.Formula2, "S", "$S$")
+    cell.Formula2 = Replace(cell.Formula2, "T", "$T$")
+    cell.Formula2 = Replace(cell.Formula2, "U", "$U$")
+    cell.Formula2 = Replace(cell.Formula2, "V", "$V$")
+    cell.Formula2 = Replace(cell.Formula2, "W", "$W$")
+Next cell
+End Sub
+
 Private Sub CommandButton2_Click()
 On Error Resume Next
 Dim cell As Range
@@ -4398,5 +4432,9 @@ ActiveSheet.Paste
 
 Application.CutCopyMode = False
 'MsgBox ("Can't find sheet MISC")
+
+End Sub
+
+Private Sub UserForm_Click()
 
 End Sub

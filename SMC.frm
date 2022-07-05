@@ -1,7 +1,7 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} SMC 
    Caption         =   "SMC for Excel"
-   ClientHeight    =   10410
+   ClientHeight    =   10170
    ClientLeft      =   45
    ClientTop       =   390
    ClientWidth     =   7080
@@ -14,6 +14,10 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
+
+
+
 
 
 
@@ -1307,7 +1311,86 @@ ActiveCell.Offset(0, -7).Activate
 
 AppActivate Application.Caption
 SendKeys "{F2}"
+
 End Sub
+
+Private Sub CommandButton_brackets_calc_Click()
+On Error Resume Next
+Dim x, y, Result, yx  As String
+Dim cc, cc2, i4, i5 As Integer
+
+cc = 0
+cc2 = 0
+i4 = 0
+i5 = 0
+
+y = ActiveCell.Formula 'mind this is not a string but variant type
+Result = ActiveCell.Formula
+
+If y <> "" Then
+    'count how many brackets in the formula already
+    i4 = Len(y) - Len(Replace(y, "(", ""))
+
+    'check for a letter with special function
+    If IfThereIsLetterInStr(CStr(y)) = False Then GoTo Done
+    
+    Dim i, StringLength As Integer
+    StringLength = ActiveCell.Column
+    Dim fc1, lc1 As String
+        
+    'find ( bracket
+    For i = 1 To StringLength - 1 Step 1
+        If InStr(cells(ActiveCell.Row, i).Text, "(") Then
+            fc1 = cells(ActiveCell.Row, i + 1).Address
+            fc1 = Replace(fc1, "$", "")
+            y = Replace(y, fc1, "(" + fc1)
+            cc = cc + 1
+            'MsgBox (fc1)
+        End If
+
+    ' find ) bracket
+        If InStr(cells(ActiveCell.Row, i).Text, ")") Then
+            lc1 = cells(ActiveCell.Row, i - 1).Address(0)
+            lc1 = Replace(lc1, "$", "")
+            y = Replace(y, lc1, lc1 + ")")
+            cc2 = cc2 + 1
+            'MsgBox (lc1)
+        End If
+    Next i
+    End If
+    'MsgBox (y)
+    ActiveCell.Formula = y
+        
+    If cc <> cc2 Then
+        MsgBox ("Check brackets")
+    End If
+    
+    'now clean mode
+    
+    'count how many brackets in the formula now
+    i5 = Len(y) - Len(Replace(y, "(", ""))
+    
+    'MsgBox y
+    'MsgBox ("i4 = " & i4)
+    'MsgBox ("cc = " & cc)
+    
+
+    If cc = 0 Or i5 <> cc Then
+        y = Replace(y, "(", "")
+        y = Replace(y, ")", "")
+        ActiveCell.Formula = y
+    End If
+
+
+
+Done:
+    Exit Sub
+   
+End Sub
+
+
+
+
 
 Private Sub CommandButton_BU_Click()
 makeNice
@@ -1376,6 +1459,7 @@ ActiveCell.Offset(-2, -3).Activate
 ActiveCell.FormulaR1C1 = "="
 AppActivate Application.Caption
 SendKeys "{F2}"
+
 End Sub
 
 Private Sub CommandButton_cantilever_deflF_Click()
@@ -1436,6 +1520,7 @@ ActiveCell.Offset(-2, -3).Activate
 ActiveCell.FormulaR1C1 = "="
 AppActivate Application.Caption
 SendKeys "{F2}"
+
 End Sub
 
 Private Sub CommandButton_cantilever_M_Click()
@@ -1483,6 +1568,7 @@ ActiveCell.Offset(0, -5).Activate
 ActiveCell.FormulaR1C1 = "="
 AppActivate Application.Caption
 SendKeys "{F2}"
+
 End Sub
 
 Private Sub CommandButton_check_kN_Click()
@@ -1793,7 +1879,7 @@ End Sub
 
 
 Private Sub CommandButton_delete_row_Click()
-If ActiveCell.Formula = "" Then
+If ActiveCell.Formula = "" And ActiveCell.Row <> "1" Then
     ActiveCell.EntireRow.Delete
     ActiveCell.Offset(-1, 0).Activate
 End If
@@ -2118,6 +2204,7 @@ ActiveCell.Offset(0, -7).Activate
 
 AppActivate Application.Caption
 SendKeys "{F2}"
+
 End Sub
 
 Private Sub CommandButton_goto_Click()
@@ -2575,13 +2662,7 @@ SendKeys "{F2}"
 SendKeys "^a"
 End Sub
 
-Private Sub CommandButton_nzs3404_Click()
-On Error Resume Next
-Dim chromePath As String
-chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
-Shell (chromePath & " -url https://www.dropbox.com/s/7ng0kvd96wdup47/NZS%203404.1%262-1997%20%28Steel%20structures%29.pdf?dl=0")
 
-End Sub
 
 Private Sub CommandButton_OK_Click()
 makeNice
@@ -2595,13 +2676,6 @@ txt = ChrW(&H3C9)
 SetClipboard (txt)
 End Sub
 
-Private Sub CommandButton_PFC_Click()
-On Error Resume Next
-Dim chromePath As String
-chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
-Shell (chromePath & " -url https://www.dropbox.com/s/znrjv9lkppc3zah/S%26T_Design_With_Steel_2013_2_Part6.pdf?dl=0")
-
-End Sub
 
 Private Sub CommandButton_pi_Click()
    
@@ -2774,13 +2848,7 @@ SendKeys "^a"
 
 End Sub
 
-Private Sub CommandButton_RHS_Click()
-On Error Resume Next
-Dim chromePath As String
-chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
-Shell (chromePath & " -url https://www.dropbox.com/s/2xcve7wqo7gewtn/S%26T_Design_With_Steel_2013_2_Part15.pdf?dl=0")
 
-End Sub
 
 Private Sub CommandButton_ro_Click()
 Dim txt As String
@@ -2847,13 +2915,7 @@ txt = ChrW(&H2076)
 SetClipboard (txt)
 End Sub
 
-Private Sub CommandButton_sesoc_Click()
-On Error Resume Next
-Dim chromePath As String
-chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
-Shell (chromePath & " -url https://www.dropbox.com/s/znr7hcsijzvithb/SESOC%20-%20Simplified_Design_of_Steel_Members.pdf?dl=0")
 
-End Sub
 
 Private Sub CommandButton_SHS_Click()
 On Error Resume Next
@@ -2865,13 +2927,7 @@ Shell (chromePath & " -url http://sunsetpatios.com.au/beam-deflection-calculator
 
 End Sub
 
-Private Sub CommandButton_SHS222_Click()
-On Error Resume Next
-Dim chromePath As String
-chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
-Shell (chromePath & " -url https://www.dropbox.com/s/48txhovc3ek22el/S%26T_Design_With_Steel_2013_2_Part20.pdf?dl=0")
 
-End Sub
 
 Private Sub CommandButton_sigma_Click()
 Dim txt As String
@@ -3049,6 +3105,7 @@ ActiveCell.FormulaR1C1 = "="
 
 AppActivate Application.Caption
 SendKeys "{F2}"
+
 End Sub
 
 Private Sub CommandButton_simplebeam_M_Click()
@@ -3098,21 +3155,10 @@ ActiveCell.Offset(0, -5).Activate
 ActiveCell.FormulaR1C1 = "="
 AppActivate Application.Caption
 SendKeys "{F2}"
-End Sub
-
-Private Sub CommandButton_UB_Click()
-On Error Resume Next
-'Dim pat1, pat2, pat3 As String
-'pat1 = """C:\Program Files (x86)\Adobe\Acrobat DC\Acrobat\Acrobat.exe"""
-'pat2 = "/A ""page=3"""
-'pat3 = """C:\Users\64210\Dropbox (SMC Design Studio)\SMC Design Studio Team Folder\Specifications\STEEL SECTIONS S&T_Design_with_Steel_Nov2015-01.pdf"""
-'Shell pat1 & " " & pat2 & " " & pat3, vbNormalFocus
-
-Dim chromePath As String
-chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
-Shell (chromePath & " -url https://www.dropbox.com/s/790dxmxyp4d565d/S%26T_Design_With_Steel_2013_2_Part3.pdf?dl=0")
 
 End Sub
+
+
 
 Private Sub CommandButton_tau_Click()
 Dim txt As String
@@ -3126,13 +3172,7 @@ txt = ChrW(&H3B8)
 SetClipboard (txt)
 End Sub
 
-Private Sub CommandButton_L_Click()
-On Error Resume Next
-Dim chromePath As String
-chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
-Shell (chromePath & " -url https://www.dropbox.com/s/zimhh8s9o2hnts3/S%26T_Design_With_Steel_2013_2_Part10.pdf?dl=0")
 
-End Sub
 
 Private Sub CommandButton_update_Click()
 On Error Resume Next
@@ -3221,6 +3261,7 @@ ActiveCell.Offset(0, -7).Activate
 
 AppActivate Application.Caption
 SendKeys "{F2}"
+
 End Sub
 
 Private Sub CommandButton_x_Click()
@@ -3250,28 +3291,31 @@ ActiveCell.Offset(0, 1).Activate
 ActiveCell.FormulaR1C1 = "=IF(RC[-4]<RC[1]," & Chr(34) & "< " & Chr(34) & "," & Chr(34) & ">" & Chr(34) & ")"
 
 ActiveCell.Offset(0, 1).Activate
-ActiveCell.FormulaR1C1 = "="
+ActiveCell.FormulaR1C1 = "=1000"
 
 ActiveCell.Resize(1, 3).Merge
 
 Selection.NumberFormat = "0"" kNm"""
 ActiveCell.Offset(0, 2).Activate
-ActiveCell.FormulaR1C1 = "=IF(ISNUMBER(SEARCH(" & Chr(34) & "<" & Chr(34) & ",RC[-5]))," & Chr(34) & ChrW(&H2192) & " OK" & Chr(34) & ", " & Chr(34) & "NOT OK, PLEASE REFER TO ENGINEER" & Chr(34) & ")"
-
-
+ActiveCell.FormulaR1C1 = "=IF(ISNUMBER(SEARCH(" & Chr(34) & "<" & Chr(34) & ",RC[-5]))," & Chr(34) & ChrW(&H2192) & " OK   or " & Chr(34) & ", " & Chr(34) & "NOT OK, PLEASE REFER TO ENGINEER" & Chr(34) & ")"
+ActiveCell.Offset(0, 3).Activate
+ActiveCell.FormulaR1C1 = "=RC[-12]/RC[-7]"
 
 'conditional format
+ActiveCell.Resize(1, 2).Merge
+ActiveCell.NumberFormat = "0%"
 
+
+ActiveCell.Offset(0, -3).Activate
 ActiveCell.FormatConditions.Delete
 ActiveCell.FormatConditions.Add Type:=xlTextString, TextOperator:=xlContains, String:="NOT OK"
 ActiveCell.FormatConditions(1).Interior.Color = RGB(255, 0, 0)
 
 
-
 ActiveCell.Offset(0, -4).Activate
 AppActivate Application.Caption
 SendKeys "{F2}"
-
+SendKeys "^a"
 End Sub
 
 Private Sub CommandButton_0m_Click()
@@ -3592,6 +3636,7 @@ ActiveCell.Offset(0, -3).Activate
 ActiveCell.FormulaR1C1 = "="
 AppActivate Application.Caption
 SendKeys "{F2}"
+
 End Sub
 
 Private Sub CommandButton_check_Click()
@@ -3972,6 +4017,54 @@ For Each cell In Selection
 Next cell
 End Sub
 
+
+Private Sub CommandButton_m3_Click()
+makeNice
+Selection.NumberFormat = "0.0"" m³"""
+autoMerge 30, 0
+
+End Sub
+
+Private Sub CommandButton1Ix_Click()
+
+End Sub
+
+Private Sub CommandButton11_Click()
+On Error Resume Next
+Dim chromePath As String
+
+chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
+
+Shell (chromePath & " -url https://skyciv.com/free-moment-of-inertia-calculator/")
+End Sub
+
+Private Sub CommandButton12_Click()
+On Error Resume Next
+Dim chromePath As String
+
+chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
+
+Shell (chromePath & " -url https://www.alt-codes.net/")
+End Sub
+
+Private Sub CommandButton_STEELINFO_Click()
+On Error Resume Next
+Dim chromePath As String
+
+chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
+
+Shell (chromePath & " -url https://www.steelforlifebluebook.co.uk/")
+End Sub
+
+Private Sub CommandButton13_Click()
+On Error Resume Next
+Dim chromePath As String
+
+chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
+
+Shell (chromePath & " -url https://standardsnz.tekreader.com/files/nzs-36041999_8981#pt-sec-8_d61e178")
+End Sub
+
 Private Sub CommandButton2_Click()
 On Error Resume Next
 Dim cell As Range
@@ -3995,25 +4088,8 @@ AppActivate Application.Caption
 
 End Sub
 
-Private Sub CommandButton4_Click()
-On Error Resume Next
-Dim chromePath As String
-chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
-Shell (chromePath & " -url https://www.dropbox.com/s/4qtq6v2bqvbi0z2/SESOC%20-%20Simplified_Design_of_Steel_Members_page63-67.pdf?dl=0")
-
-'MsgBox ("check file address or Chrome address C:\Program Files (x86)\Google\Chrome\Application\chrome.exe")
-
-    
-End Sub
-
-Private Sub CommandButton5_Click()
-On Error Resume Next
-Dim chromePath As String
-chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
-Shell (chromePath & " -url https://www.dropbox.com/s/hm82e3auheiakxb/SESOC%20-%20Simplified_Design_of_Steel_Members_page69-76.pdf?dl=0")
 
 
-End Sub
 
 Private Sub CommandButton6_Click()
 ActiveCell.Insert xlShiftToRight
@@ -4331,43 +4407,8 @@ End If
 
 End Sub
 
-Private Sub concrete_beam_Click()
-On Error Resume Next
-'MsgBox ("Can't find sheet MISC")
-Sheets("MISC").Range("B1054:AQ1131").Copy
-
-ActiveSheet.Paste
-
-Application.CutCopyMode = False
-
-End Sub
 
 
-Private Sub steel_beam_Click()
-On Error Resume Next
-Sheets("MISC").Range("B1717:V1794").Copy 'AQ instead of V if required
-
-ActiveSheet.Paste
-
-Application.CutCopyMode = False
-
-'MsgBox ("Can't find sheet MISC")
-
-End Sub
-
-Private Sub timber_beam_Click()
-On Error Resume Next
-
-Sheets("MISC").Range("B391:AQ507").Copy
-
-ActiveSheet.Paste
-
-Application.CutCopyMode = False
-
-Done:
-    Exit Sub
-
-End Sub
 
 
 Private Sub CommandButtonx_Click()
@@ -4424,14 +4465,9 @@ Done:
 End Sub
 
 
-Private Sub timber_column_Click()
-On Error Resume Next
-Sheets("MISC").Range("B547:V624").Copy 'AQ instead of V if needed
 
-ActiveSheet.Paste
 
-Application.CutCopyMode = False
-'MsgBox ("Can't find sheet MISC")
+Private Sub Label12_Click()
 
 End Sub
 

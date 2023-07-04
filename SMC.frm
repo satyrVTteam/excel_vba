@@ -25,7 +25,6 @@ Attribute VB_Exposed = False
 
 
 
-
 ' FROM COPYPASTE MODULE
 Option Explicit
 Public PreviousCell As Range
@@ -1314,84 +1313,6 @@ SendKeys "{F2}"
 
 End Sub
 
-Private Sub CommandButton_brackets_calc_Click()
-On Error Resume Next
-Dim x, y, Result, yx  As String
-Dim cc, cc2, i4, i5 As Integer
-
-cc = 0
-cc2 = 0
-i4 = 0
-i5 = 0
-
-y = ActiveCell.Formula 'mind this is not a string but variant type
-Result = ActiveCell.Formula
-
-If y <> "" Then
-    'count how many brackets in the formula already
-    i4 = Len(y) - Len(Replace(y, "(", ""))
-
-    'check for a letter with special function
-    If IfThereIsLetterInStr(CStr(y)) = False Then GoTo Done
-    
-    Dim i, StringLength As Integer
-    StringLength = ActiveCell.Column
-    Dim fc1, lc1 As String
-        
-    'find ( bracket
-    For i = 1 To StringLength - 1 Step 1
-        If InStr(cells(ActiveCell.Row, i).Text, "(") Then
-            fc1 = cells(ActiveCell.Row, i + 1).Address
-            fc1 = Replace(fc1, "$", "")
-            y = Replace(y, fc1, "(" + fc1)
-            cc = cc + 1
-            'MsgBox (fc1)
-        End If
-
-    ' find ) bracket
-        If InStr(cells(ActiveCell.Row, i).Text, ")") Then
-            lc1 = cells(ActiveCell.Row, i - 1).Address(0)
-            lc1 = Replace(lc1, "$", "")
-            y = Replace(y, lc1, lc1 + ")")
-            cc2 = cc2 + 1
-            'MsgBox (lc1)
-        End If
-    Next i
-    End If
-    'MsgBox (y)
-    ActiveCell.Formula = y
-        
-    If cc <> cc2 Then
-        MsgBox ("Check brackets")
-    End If
-    
-    'now clean mode
-    
-    'count how many brackets in the formula now
-    i5 = Len(y) - Len(Replace(y, "(", ""))
-    
-    'MsgBox y
-    'MsgBox ("i4 = " & i4)
-    'MsgBox ("cc = " & cc)
-    
-
-    If cc = 0 Or i5 <> cc Then
-        y = Replace(y, "(", "")
-        y = Replace(y, ")", "")
-        ActiveCell.Formula = y
-    End If
-
-
-
-Done:
-    Exit Sub
-   
-End Sub
-
-
-
-
-
 Private Sub CommandButton_BU_Click()
 makeNice
 Dim xxx, yyy, zzz As String
@@ -1879,7 +1800,7 @@ End Sub
 
 
 Private Sub CommandButton_delete_row_Click()
-If ActiveCell.Formula = "" And ActiveCell.Row <> "1" Then
+If ActiveCell.Formula = "" Then
     ActiveCell.EntireRow.Delete
     ActiveCell.Offset(-1, 0).Activate
 End If
@@ -2569,7 +2490,7 @@ Dim chromePath As String
 On Error Resume Next
 chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
 
-Shell (chromePath & " -url http://doctorlom.com/item173.html#sharnir")
+Shell (chromePath & " -url https://mechanicalc.com/reference/beam-deflection-tables")
 
 End Sub
 
@@ -3288,7 +3209,9 @@ ActiveCell.FormulaR1C1 = "=1"
 Selection.NumberFormat = "0"" kNm"""
 ActiveCell.Offset(0, 1).Activate
 ActiveCell.Offset(0, 1).Activate
-ActiveCell.FormulaR1C1 = "=IF(RC[-4]<RC[1]," & Chr(34) & "< " & Chr(34) & "," & Chr(34) & ">" & Chr(34) & ")"
+
+'allow the value to be in 3% bracket
+ActiveCell.FormulaR1C1 = "=IF(AND(RC[-4]<1.03*RC[1], RC[-4]>0.97*RC[1]), ""~"", IF(RC[-4]<RC[1], ""< "", "">""))"
 
 ActiveCell.Offset(0, 1).Activate
 ActiveCell.FormulaR1C1 = "=1000"
@@ -3297,22 +3220,25 @@ ActiveCell.Resize(1, 3).Merge
 
 Selection.NumberFormat = "0"" kNm"""
 ActiveCell.Offset(0, 2).Activate
-ActiveCell.FormulaR1C1 = "=IF(ISNUMBER(SEARCH(" & Chr(34) & "<" & Chr(34) & ",RC[-5]))," & Chr(34) & ChrW(&H2192) & " OK   or " & Chr(34) & ", " & Chr(34) & "NOT OK, PLEASE REFER TO ENGINEER" & Chr(34) & ")"
-ActiveCell.Offset(0, 3).Activate
-ActiveCell.FormulaR1C1 = "=RC[-12]/RC[-7]"
+ActiveCell.FormulaR1C1 = "=IF(ISNUMBER(SEARCH(" & Chr(34) & ">" & Chr(34) & ",RC[-5]))," & Chr(34) & " STOP " & Chr(34) & ", " & Chr(34) & " OK " & Chr(34) & ")"
+ActiveCell.Offset(0, 2).Activate
+ActiveCell.FormulaR1C1 = "=RC[-11]/RC[-6]"
+ActiveCell.Resize(1, 2).Merge
 
 'conditional format
-ActiveCell.Resize(1, 2).Merge
 ActiveCell.NumberFormat = "0%"
 
 
-ActiveCell.Offset(0, -3).Activate
+ActiveCell.Offset(0, -2).Activate
+ActiveCell.Resize(1, 2).Merge
+ActiveCell.HorizontalAlignment = xlCenter
 ActiveCell.FormatConditions.Delete
-ActiveCell.FormatConditions.Add Type:=xlTextString, TextOperator:=xlContains, String:="NOT OK"
+ActiveCell.FormatConditions.Add Type:=xlTextString, TextOperator:=xlContains, String:="STOP"
 ActiveCell.FormatConditions(1).Interior.Color = RGB(255, 0, 0)
+ActiveCell.FormatConditions.Add Type:=xlTextString, TextOperator:=xlContains, String:="OK"
+ActiveCell.FormatConditions(2).Interior.Color = RGB(0, 255, 0)
 
-
-ActiveCell.Offset(0, -4).Activate
+ActiveCell.Offset(0, -3).Activate
 AppActivate Application.Caption
 SendKeys "{F2}"
 SendKeys "^a"
@@ -4038,33 +3964,6 @@ chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
 Shell (chromePath & " -url https://skyciv.com/free-moment-of-inertia-calculator/")
 End Sub
 
-Private Sub CommandButton12_Click()
-On Error Resume Next
-Dim chromePath As String
-
-chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
-
-Shell (chromePath & " -url https://www.alt-codes.net/")
-End Sub
-
-Private Sub CommandButton_STEELINFO_Click()
-On Error Resume Next
-Dim chromePath As String
-
-chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
-
-Shell (chromePath & " -url https://www.steelforlifebluebook.co.uk/")
-End Sub
-
-Private Sub CommandButton13_Click()
-On Error Resume Next
-Dim chromePath As String
-
-chromePath = """C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"""
-
-Shell (chromePath & " -url https://standardsnz.tekreader.com/files/nzs-36041999_8981#pt-sec-8_d61e178")
-End Sub
-
 Private Sub CommandButton2_Click()
 On Error Resume Next
 Dim cell As Range
@@ -4466,10 +4365,6 @@ End Sub
 
 
 
-
-Private Sub Label12_Click()
-
-End Sub
 
 Private Sub UserForm_Click()
 

@@ -4364,7 +4364,13 @@ Done:
 End Sub
 
 
+Private Sub Link_Clear_Click()
+Selection.Hyperlinks.Delete
+End Sub
 
+Private Sub Link_Click()
+ActiveCell.Hyperlinks.Add Anchor:=Selection, Address:="", SubAddress:="" & ActiveSheet.Name & "!" & LinkA & ""
+End Sub
 
 Private Sub UserForm_Click()
 
